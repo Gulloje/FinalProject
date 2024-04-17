@@ -8,7 +8,7 @@
     <fragment
         android:id="@+id/nav_search_ticket"
         android:name="com.example.finalproject.ui.home.HomeFragment"
-        android:label="@string/menu_home"
+        android:label="@string/menu_search_ticket"
         tools:layout="@layout/fragment_home" />
 
     <fragment

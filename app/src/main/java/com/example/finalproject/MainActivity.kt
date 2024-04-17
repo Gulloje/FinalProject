@@ -32,7 +32,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        ///wtfff
+
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -62,23 +62,19 @@ class MainActivity : AppCompatActivity() {
             navView.menu.findItem(R.id.nav_sign_out).title = "Login"
         }
         //if i need to override the default menu behavior, ex for logging out
-        navView.setNavigationItemSelectedListener { menuItem ->
-            when(menuItem.itemId) {
-                R.id.nav_sign_out -> {
-                    AuthUI.getInstance().signOut(this)
-                        .addOnCompleteListener { task ->
-                            if (task.isSuccessful) {
-                                val intent = Intent(this, LoginPage::class.java)
-                                this.startActivity(intent)
-                                finish();
-                            } else {
-                                Toast.makeText(this, "Cannot Log Out at This Time", Toast.LENGTH_SHORT).show()
-                            }
-                        }
-                    true
+        val signOutItem = navView.menu.findItem(R.id.nav_sign_out)
+        signOutItem.setOnMenuItemClickListener {
+            AuthUI.getInstance().signOut(this)
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        val intent = Intent(this, LoginPage::class.java)
+                        startActivity(intent)
+                        finish()
+                    } else {
+                        Toast.makeText(this, "Cannot Log Out at This Time", Toast.LENGTH_SHORT).show()
+                    }
                 }
-                else -> false
-            }
+            true //consumes the button click
         }
 
     }
