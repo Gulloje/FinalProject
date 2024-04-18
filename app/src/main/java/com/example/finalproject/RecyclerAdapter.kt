@@ -3,11 +3,13 @@ package com.example.finalproject
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.opengl.Visibility
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.CheckBox
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
@@ -16,6 +18,9 @@ import androidx.core.content.ContextCompat.startActivity
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.finalproject.EventData
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.FirebaseFirestore
 import java.text.SimpleDateFormat
 import java.util.Date
 import kotlin.math.ceil
@@ -25,6 +30,8 @@ class RecyclerAdapter(private val context: Context, private val eventList: Array
 {
     //code for adding the see more button: https://stackoverflow.com/questions/29106484/how-to-add-a-button-at-the-end-of-recyclerview
     val TAG = "Recycler Adapter"
+    private val db = FirebaseFirestore.getInstance()
+    private val user = FirebaseAuth.getInstance().uid
     inner class ViewHolder(itemView: View): RecyclerView.ViewHolder(itemView) {
         val eventName = itemView.findViewById<TextView>(R.id.textEventName)
         val eventLocation = itemView.findViewById<TextView>(R.id.textLocation)
@@ -34,6 +41,8 @@ class RecyclerAdapter(private val context: Context, private val eventList: Array
         val image = itemView.findViewById<ImageView>(R.id.imageView)
         val btnSeeMore = itemView.findViewById<Button>(R.id.btnSeeMore)
         val btnSeeTickets = itemView.findViewById<Button>(R.id.btnSeeTickets)
+        val checkFavorite = itemView.findViewById<CheckBox>(R.id.checkFavorite)
+
 
     }
 
@@ -50,11 +59,6 @@ class RecyclerAdapter(private val context: Context, private val eventList: Array
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         Log.d(TAG, "onBindViewHolder: $position")
-        //COMEBACK
-        //if(position == eventList.size && eventList.size > 0) {
-
-        //if(position == eventList.size && eventList.size > 0) {
-            //holder.btnSeeMore.visibility = View.VISIBLE
 
         if (position == eventList.size) {
 
@@ -109,6 +113,20 @@ class RecyclerAdapter(private val context: Context, private val eventList: Array
                 browserIntent.data = Uri.parse(eventList[position].url)
                 context.startActivity( browserIntent)
             }
+
+            holder.checkFavorite.setOnCheckedChangeListener { buttonView, isChecked ->
+                if (user == null) {
+                    Toast.makeText(context, "Must Login to Favorite Events", Toast.LENGTH_SHORT).show()
+                    holder.checkFavorite.isChecked = false
+                    //holder.checkFavorite.visibility = View.GONE //if i think it is better to just hide the button altogether
+                }
+                if (isChecked) {
+                    addFavorite(curItem.id)
+                } else {
+                    deleteFavorite(curItem.id)
+                }
+            }
+
         }
 
 
@@ -127,5 +145,16 @@ class RecyclerAdapter(private val context: Context, private val eventList: Array
 
     override fun getItemCount(): Int {
         return eventList.size + 1
+    }
+
+    private fun addFavorite(eventId: String) {
+        val usersFavorites = db.document("users/${user}")
+        usersFavorites.update("favorites", FieldValue.arrayUnion(eventId)) //https://firebase.google.com/docs/firestore/manage-data/add-data
+
+    }
+    private fun deleteFavorite(eventId: String) {
+        val usersFavorites = db.document("users/${user}/")
+        usersFavorites.update("favorites", FieldValue.arrayRemove(eventId))
+
     }
 }

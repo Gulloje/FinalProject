@@ -19,6 +19,9 @@ import com.example.finalproject.EventDataService
 import com.example.finalproject.RecyclerAdapter
 import com.example.finalproject.TicketData
 import com.example.finalproject.databinding.FragmentHomeBinding
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.firestore.FirebaseFirestore
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -64,6 +67,7 @@ class HomeFragment : Fragment() {
         }
 
 
+
     }
 
     override fun onDestroyView() {
@@ -75,7 +79,7 @@ class HomeFragment : Fragment() {
     // wanted to prevent changing the text field and then hitting seeMore causing the new loaded events to be that of the changed text field
     private var previousCityName =""
     private var previousKeyword = ""
-    fun search() {
+    private fun search() {
         eventList.clear()
         previousCityName = binding.textCity.text.toString()
         previousKeyword = binding.textKeyword.text.toString()
@@ -84,7 +88,7 @@ class HomeFragment : Fragment() {
         loadTickets(previousCityName, previousKeyword)
         view?.hideKeyboard()
     }
-    fun seeMore() {
+    private fun seeMore() {
         seeMoreCounter++
         loadTickets(previousCityName, previousKeyword)
 
@@ -156,13 +160,5 @@ class HomeFragment : Fragment() {
         inputMethodManager.hideSoftInputFromWindow(windowToken, 0)
     }
 
-    override fun onResume() {
-        super.onResume()
-        //want to hide the keyboard when they go back to it
-        //view = findViewById(android.R.id.content).getRootView().getWindowToken();  https://rmirabelle.medium.com/close-hide-the-soft-keyboard-in-android-db1da22b09d2
-        //findViewById<View>(android.R.id.content).hideKeyboard()
-        binding.root.hideKeyboard()
 
-
-    }
 }
