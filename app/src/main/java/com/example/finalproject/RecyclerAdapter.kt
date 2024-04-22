@@ -26,7 +26,8 @@ import java.util.Date
 import kotlin.math.ceil
 import kotlin.math.floor
 
-class RecyclerAdapter(private val context: Context, private val eventList: ArrayList<EventData>, private val onSeeMoreClicked: () -> Unit ): RecyclerView.Adapter<RecyclerAdapter.ViewHolder>()
+class RecyclerAdapter(private val context: Context, private val eventList: ArrayList<EventData>, private val userFavorites: ArrayList<String>,
+                      private val onSeeMoreClicked: () -> Unit ): RecyclerView.Adapter<RecyclerAdapter.ViewHolder>()
 {
     //code for adding the see more button: https://stackoverflow.com/questions/29106484/how-to-add-a-button-at-the-end-of-recyclerview
     val TAG = "Recycler Adapter"
@@ -44,6 +45,39 @@ class RecyclerAdapter(private val context: Context, private val eventList: Array
         val checkFavorite = itemView.findViewById<CheckBox>(R.id.checkFavorite)
 
 
+        init {
+            btnSeeTickets?.setOnClickListener {
+                val browserIntent = Intent(Intent.ACTION_VIEW)
+                browserIntent.data = Uri.parse(eventList[position].url)
+                context.startActivity( browserIntent)
+            }
+
+            btnSeeMore?.setOnClickListener {
+                onSeeMoreClicked()
+            }
+            checkFavorite?.setOnCheckedChangeListener { buttonView, isChecked ->
+                if (user == null) {
+                    Toast.makeText(context, "Must Login to Favorite Events", Toast.LENGTH_SHORT).show()
+                    checkFavorite.isChecked = false
+                    //holder.checkFavorite.visibility = View.GONE //if i think it is better to just hide the button altogether
+                    return@setOnCheckedChangeListener
+                }
+                val currentEventId = eventList[position].id
+
+                // Update favorite status based on checkbox state
+                if (isChecked) {
+                    if (!userFavorites.contains(currentEventId)) {
+                        addFavorite(currentEventId)
+                        userFavorites.add(currentEventId)
+                    }
+                } else {
+                    if (userFavorites.contains(currentEventId)) {
+                        deleteFavorite(currentEventId)
+                        userFavorites.remove(currentEventId)
+                    }
+                }
+            }
+        }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -64,10 +98,6 @@ class RecyclerAdapter(private val context: Context, private val eventList: Array
 
             if (eventList.size % 20 == 0 && eventList.size != 0) {
                 holder.btnSeeMore.visibility = View.VISIBLE
-                //if the button is visible, we can se the listener so no null pointer
-                holder.btnSeeMore.setOnClickListener {
-                    onSeeMoreClicked();
-                }
             } else {
                 holder.btnSeeMore.visibility = View.GONE
             }
@@ -108,25 +138,15 @@ class RecyclerAdapter(private val context: Context, private val eventList: Array
             }
             val context = holder.itemView.context
             Glide.with(context).load(highestQualityImage?.url).into(holder.image)
-            holder.btnSeeTickets.setOnClickListener {
-                val browserIntent = Intent(Intent.ACTION_VIEW)
-                browserIntent.data = Uri.parse(eventList[position].url)
-                context.startActivity( browserIntent)
-            }
 
-            holder.checkFavorite.setOnCheckedChangeListener { buttonView, isChecked ->
-                if (user == null) {
-                    Toast.makeText(context, "Must Login to Favorite Events", Toast.LENGTH_SHORT).show()
-                    holder.checkFavorite.isChecked = false
-                    //holder.checkFavorite.visibility = View.GONE //if i think it is better to just hide the button altogether
-                }
-                if (isChecked) {
-                    addFavorite(curItem.id)
-                } else {
-                    deleteFavorite(curItem.id)
-                }
-            }
+            Log.d(TAG, "favorites: $userFavorites")
+            Log.d(TAG, "itemid: ${curItem.id}")
 
+            if(userFavorites.contains(curItem.id)) {
+                holder.checkFavorite.isChecked = true
+            } else {
+                holder.checkFavorite.isChecked = false
+            }
         }
 
 
