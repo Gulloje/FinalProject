@@ -12,5 +12,6 @@
     <string name="menu_slideshow">Slideshow</string>
     <string name="menu_search_ticket">Search Tickets</string>
     <string name="menu_sign_out">Sign-out</string>
+    <string name="menu_favorites">Favorites</string>
 
 </resources>

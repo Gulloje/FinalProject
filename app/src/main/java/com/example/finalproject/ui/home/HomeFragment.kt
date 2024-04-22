@@ -19,11 +19,20 @@ import com.example.finalproject.EventDataService
 import com.example.finalproject.RecyclerAdapter
 import com.example.finalproject.TicketData
 import com.example.finalproject.databinding.FragmentHomeBinding
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import kotlin.concurrent.thread
+import kotlin.math.log
 
 class HomeFragment : Fragment() {
 
@@ -43,6 +52,9 @@ class HomeFragment : Fragment() {
     private  val eventList = ArrayList<EventData>()
     private val eventAPI = initRetrofit().create(EventDataService::class.java)
 
+    private val db = FirebaseFirestore.getInstance()
+    private val user = FirebaseAuth.getInstance()
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -53,7 +65,7 @@ class HomeFragment : Fragment() {
 
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
         val root: View = binding.root
-        initRecyclerView()
+        //initRecyclerView()
 
         return root
     }
@@ -62,6 +74,7 @@ class HomeFragment : Fragment() {
         binding.btnSearch.setOnClickListener {
             search()
         }
+        initRecyclerView()
 
 
     }
@@ -75,7 +88,7 @@ class HomeFragment : Fragment() {
     // wanted to prevent changing the text field and then hitting seeMore causing the new loaded events to be that of the changed text field
     private var previousCityName =""
     private var previousKeyword = ""
-    fun search() {
+    private fun search() {
         eventList.clear()
         previousCityName = binding.textCity.text.toString()
         previousKeyword = binding.textKeyword.text.toString()
@@ -84,7 +97,7 @@ class HomeFragment : Fragment() {
         loadTickets(previousCityName, previousKeyword)
         view?.hideKeyboard()
     }
-    fun seeMore() {
+    private fun seeMore() {
         seeMoreCounter++
         loadTickets(previousCityName, previousKeyword)
 
@@ -105,8 +118,6 @@ class HomeFragment : Fragment() {
                     if (response.body()?._embedded == null) {
                         //Toast.makeText(this@MainActivity, "No Events Found", Toast.LENGTH_SHORT).show()
                         binding.noResultsTextView.visibility = View.VISIBLE
-
-
                     } else {
                         Log.d(TAG, "onResponse: ${response.body()}")
                         Log.d(TAG, "Name ${response.body()!!._embedded.events[0]}")
@@ -114,6 +125,7 @@ class HomeFragment : Fragment() {
                         binding.noResultsTextView.visibility = View.GONE
 
                         eventList.addAll(response.body()!!._embedded.events)
+
                     }
                     adapter.notifyDataSetChanged()
 
@@ -136,7 +148,29 @@ class HomeFragment : Fragment() {
     private fun initRecyclerView() {
         recyclerView = binding.recycleView
         //i needed to send a function to set the seeMore button to when the recylerview in initialized
-        adapter = RecyclerAdapter(requireContext(), eventList) {
+        var favorites = ArrayList<String>()
+
+        //COMEBACK: trying to factor stuff out made this crash idk
+        db.document("users/${user.uid}").get()
+            .addOnSuccessListener {document ->
+                if (document.data?.get("favorites") != null) {
+                    favorites = document.data?.get("favorites") as ArrayList<String>
+                    adapter = RecyclerAdapter(requireContext(), eventList, favorites) {
+                        seeMore()
+                    };
+                    recyclerView.adapter = adapter
+                    recyclerView.layoutManager = LinearLayoutManager(requireContext())
+                }
+            }
+            .addOnFailureListener {
+                adapter = RecyclerAdapter(requireContext(), eventList, favorites) {
+                    seeMore()
+                };
+                recyclerView.adapter = adapter
+                recyclerView.layoutManager = LinearLayoutManager(requireContext())
+
+            }
+        adapter = RecyclerAdapter(requireContext(), eventList, favorites) {
             seeMore()
         };
         recyclerView.adapter = adapter
@@ -147,6 +181,7 @@ class HomeFragment : Fragment() {
         val retrofit = Retrofit.Builder().baseUrl(BASE_URL)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
+
         return retrofit
     }
 
@@ -156,13 +191,5 @@ class HomeFragment : Fragment() {
         inputMethodManager.hideSoftInputFromWindow(windowToken, 0)
     }
 
-    override fun onResume() {
-        super.onResume()
-        //want to hide the keyboard when they go back to it
-        //view = findViewById(android.R.id.content).getRootView().getWindowToken();  https://rmirabelle.medium.com/close-hide-the-soft-keyboard-in-android-db1da22b09d2
-        //findViewById<View>(android.R.id.content).hideKeyboard()
-        binding.root.hideKeyboard()
 
-
-    }
 }

@@ -9,12 +9,13 @@
             android:icon="@android:drawable/ic_menu_search"
             android:title="@string/menu_search_ticket" />
         <item
+            android:id="@+id/nav_favorites"
+            android:icon="@android:drawable/ic_menu_view"
+            android:title="@string/menu_favorites" />
+        <item
             android:id="@+id/nav_sign_out"
             android:icon="@android:drawable/ic_menu_revert"
             android:title="@string/menu_sign_out" />
-        <item
-            android:id="@+id/nav_slideshow"
-            android:icon="@drawable/ic_menu_slideshow"
-            android:title="@string/menu_slideshow" />
+
     </group>
 </menu>

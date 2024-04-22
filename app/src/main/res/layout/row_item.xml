@@ -3,11 +3,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:foregroundTint="#DD1212">
 
     <androidx.cardview.widget.CardView
         android:layout_width="386dp"
-        android:layout_height="338dp"
+        android:layout_height="363dp"
         android:layout_margin="10dp"
         android:backgroundTint="#FFFFFF"
         app:cardBackgroundColor="#FFFFFF"
@@ -27,7 +28,10 @@
             <ImageView
                 android:id="@+id/imageView"
                 android:layout_width="0dp"
-                android:layout_height="0dp"
+                android:layout_height="208dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="4dp"
+                android:layout_marginEnd="8dp"
                 android:adjustViewBounds="true"
                 android:scaleType="fitCenter"
                 app:layout_constraintBottom_toTopOf="@+id/textEventName"
@@ -57,6 +61,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:text="EVENT LOCATION"
+                android:textColor="#474747"
                 android:textSize="16sp"
                 android:textStyle="bold"
                 app:layout_constraintBottom_toTopOf="@+id/textAddress"
@@ -69,6 +74,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:text="ADDRESS"
+                android:textColor="#474747"
                 app:layout_constraintBottom_toTopOf="@+id/textDate"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/textLocation" />
@@ -79,6 +85,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:text="EVENT DATE"
+                android:textColor="#474747"
                 app:layout_constraintBottom_toTopOf="@+id/textPriceRange"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/textAddress" />
@@ -89,6 +96,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:text="PRICE RANGE"
+                android:textColor="#474747"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/textDate" />
@@ -103,15 +111,20 @@
                 android:shadowColor="#573C3C"
                 android:text="See Tickets"
                 android:textColor="@color/white"
-                android:textColorHighlight="#8BC34A"
-                android:textColorHint="#000000"
-                android:textColorLink="#4CAF50"
                 app:cornerRadius="12dp"
                 app:iconPadding="8dp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:rippleColor="#FFBCBC"
                 app:strokeColor="#FFFFFF" />
+
+            <CheckBox
+                android:id="@+id/checkFavorite"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:button="@android:drawable/btn_star_big_on"
+                app:layout_constraintBottom_toTopOf="@+id/btnSeeTickets"
+                app:layout_constraintEnd_toEndOf="parent" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.cardview.widget.CardView>

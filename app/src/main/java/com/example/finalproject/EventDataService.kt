@@ -11,4 +11,8 @@ interface EventDataService {
                            @Query("keyword") keyword: String,
                            @Query("page") page: String,
                            @Query("apikey") apiKey: String): Call<TicketData>
+
+
+    @GET("discovery/v2/events.json?")
+    fun getEventById(@Query("id") id: String)
 }
