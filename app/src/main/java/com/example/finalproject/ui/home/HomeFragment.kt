@@ -11,6 +11,7 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.TextView
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -55,6 +56,7 @@ class HomeFragment : Fragment() {
     private val db = FirebaseFirestore.getInstance()
     private val user = FirebaseAuth.getInstance()
 
+    private val model: HomeViewModel by activityViewModels()
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -150,7 +152,7 @@ class HomeFragment : Fragment() {
         //i needed to send a function to set the seeMore button to when the recylerview in initialized
         var favorites = ArrayList<String>()
 
-        //COMEBACK: trying to factor stuff out made this crash idk
+        //COMEBACK: trying to factor stuff out made this crash when user not logged in idk whats going on here
         db.document("users/${user.uid}").get()
             .addOnSuccessListener {document ->
                 if (document.data?.get("favorites") != null) {
@@ -160,6 +162,7 @@ class HomeFragment : Fragment() {
                     };
                     recyclerView.adapter = adapter
                     recyclerView.layoutManager = LinearLayoutManager(requireContext())
+                    model.setList(favorites);
                 }
             }
             .addOnFailureListener {
@@ -168,6 +171,7 @@ class HomeFragment : Fragment() {
                 };
                 recyclerView.adapter = adapter
                 recyclerView.layoutManager = LinearLayoutManager(requireContext())
+                model.setList(favorites);
 
             }
         adapter = RecyclerAdapter(requireContext(), eventList, favorites) {

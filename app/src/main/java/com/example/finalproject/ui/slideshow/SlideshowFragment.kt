@@ -1,13 +1,16 @@
 package com.example.finalproject.ui.slideshow
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.ViewModelProvider
 import com.example.finalproject.databinding.FragmentSlideshowBinding
+import com.example.finalproject.ui.home.HomeViewModel
 
 class SlideshowFragment : Fragment() {
 
@@ -16,6 +19,8 @@ class SlideshowFragment : Fragment() {
     // This property is only valid between onCreateView and
     // onDestroyView.
     private val binding get() = _binding!!
+    private val TAG = "slideshowfragment"
+    private val model: HomeViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -33,6 +38,13 @@ class SlideshowFragment : Fragment() {
             textView.text = it
         }
         return root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        model.list.observe(viewLifecycleOwner) { list ->
+            Log.d(TAG, "onViewCreated: $list")
+        }
     }
 
     override fun onDestroyView() {

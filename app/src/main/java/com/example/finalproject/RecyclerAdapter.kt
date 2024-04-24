@@ -64,7 +64,7 @@ class RecyclerAdapter(private val context: Context, private val eventList: Array
                 }
                 val currentEventId = eventList[position].id
 
-                // Update favorite status based on checkbox state
+                //update favorite status based on checkbox
                 if (isChecked) {
                     if (!userFavorites.contains(currentEventId)) {
                         addFavorite(currentEventId)
