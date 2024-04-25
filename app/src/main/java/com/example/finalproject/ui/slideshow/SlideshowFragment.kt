@@ -75,6 +75,9 @@ class SlideshowFragment : Fragment() {
                 Log.d(TAG, "Updated Favorites: $list")
                 loadFavorites()
                 adapter.notifyDataSetChanged()
+            } else if(list.isEmpty()) {
+                binding.textNoFavs.visibility = View.VISIBLE
+
             }
         }
         Log.d(TAG, "onCreateView2: $arrListFavorites")
@@ -95,10 +98,7 @@ class SlideshowFragment : Fragment() {
                 if (response.body()?._embedded == null) {
 
                 } else {
-                    //Log.d(TAG, "Name ${response.body()!!._embedded.events[0]}")
-                    //Log.d(TAG, "Body: ${response.body()}")
                     userFavorites.addAll(response.body()!!._embedded.events)
-
                 }
                 adapter.notifyDataSetChanged()
                 //Log.d(TAG, "initRecyclerView: $userFavorites")

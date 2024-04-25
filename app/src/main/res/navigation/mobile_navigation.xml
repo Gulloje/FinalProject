@@ -22,4 +22,9 @@
         android:name="com.example.finalproject.ui.slideshow.SlideshowFragment"
         android:label="@string/menu_favorites"
         tools:layout="@layout/fragment_slideshow" />
+    <fragment
+        android:id="@+id/nav_popular"
+        android:name="com.example.finalproject.ui.location.PopularFragment"
+        android:label="@string/menu_popular"
+        tools:layout="@layout/fragment_popular" />
 </navigation>

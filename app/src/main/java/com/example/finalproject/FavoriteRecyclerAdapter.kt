@@ -119,6 +119,7 @@ class FavoriteRecyclerAdapter(private val context: Context, private val eventDat
         usersFavorites.update("favorites", FieldValue.arrayRemove(eventData[position].id))
         eventData.removeAt(position)
         notifyItemRemoved(position)
+
     }
 
 
