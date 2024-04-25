@@ -179,6 +179,7 @@ class HomeFragment : Fragment() {
         };
         recyclerView.adapter = adapter
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
+        model.setList(favorites);
 
     }
     private fun initRetrofit() : Retrofit {

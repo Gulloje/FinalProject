@@ -60,11 +60,14 @@ class SlideshowFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        model.list.observe(viewLifecycleOwner) {
-            arrListFavorites = it
-            Log.d(TAG, "onCreateView1: $it")
-            initRecyclerView()
-            loadFavorites()
+        initRecyclerView()
+        model.list.observe(viewLifecycleOwner) {list ->
+            if (list.isNotEmpty() && list != arrListFavorites) {
+                arrListFavorites = list
+                Log.d(TAG, "Updated Favorites: $list")
+                loadFavorites()
+                adapter.notifyDataSetChanged()
+            }
         }
         Log.d(TAG, "onCreateView2: $arrListFavorites")
 

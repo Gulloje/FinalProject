@@ -105,7 +105,6 @@
                 android:id="@+id/btnSeeTickets"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="4dp"
                 android:backgroundTint="#3F51B5"
                 android:padding="10dp"
                 android:shadowColor="#573C3C"
@@ -122,6 +121,7 @@
                 android:id="@+id/checkFavorite"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="-6dp"
                 android:button="@android:drawable/btn_star_big_on"
                 app:layout_constraintBottom_toTopOf="@+id/btnSeeTickets"
                 app:layout_constraintEnd_toEndOf="parent" />

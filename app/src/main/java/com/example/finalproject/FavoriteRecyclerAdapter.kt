@@ -19,12 +19,15 @@ import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.FirebaseFirestore
 
 
 class FavoriteRecyclerAdapter(private val context: Context, private val eventData: ArrayList<EventData>,
                               private val userFavorites: ArrayList<String>): RecyclerView.Adapter<FavoriteRecyclerAdapter.FavoriteHolder>()
 {
     private val user = FirebaseAuth.getInstance()
+    private val db = FirebaseFirestore.getInstance()
     inner class FavoriteHolder(itemView: View): RecyclerView.ViewHolder(itemView) {
         val eventName = itemView.findViewById<TextView>(R.id.textEventName)
         val timeLeft = itemView.findViewById<TextView>(R.id.textDaysLeft)
@@ -50,13 +53,12 @@ class FavoriteRecyclerAdapter(private val context: Context, private val eventDat
                     return@setOnCheckedChangeListener
                 }
 
-                val currentEventId = eventData[position].id
+                val currentEventId = eventData[adapterPosition].id
 
                 //update favorite status based on checkbox
                 if (!isChecked) {
-                    //deleteFavorite(currentEventId)
-                    createDialog()
-                    userFavorites.remove(currentEventId)
+
+                    createDialog(adapterPosition)
                     notifyDataSetChanged()
                 }
             }
@@ -80,13 +82,15 @@ class FavoriteRecyclerAdapter(private val context: Context, private val eventDat
         var date = sdf.parse(curItem.dates.start.localDate)
         val millionSeconds = date.time - Calendar.getInstance().timeInMillis
         var daysLeft = millionSeconds/(24*60*60*1000)+1
-        if (daysLeft > 21) { //https://stackoverflow.com/questions/8472349/how-to-set-text-color-of-a-textview-programmatically
+        if (daysLeft < 1) { //COMEBACK, idk what happens if you send an old id
+            removeFavorite(position)
+        } else if (daysLeft > 21) { //https://stackoverflow.com/questions/8472349/how-to-set-text-color-of-a-textview-programmatically
             holder.timeLeft.setTextColor(Color.parseColor("#00C40D"))
         } else {
             holder.timeLeft.setTextColor(Color.parseColor("#FF0000"))
         }
         holder.timeLeft.text = "$daysLeft Days Left!"
-        holder.checkFavorite.isChecked = true
+        holder.checkFavorite.isChecked = eventData.contains(curItem)
 
         val highestQualityImage = curItem.images.maxByOrNull {
             it.width.toInt() * it.height.toInt()
@@ -103,19 +107,29 @@ class FavoriteRecyclerAdapter(private val context: Context, private val eventDat
         return eventData.size
     }
 
-    private fun createDialog() {
+    private fun createDialog(position: Int) {
         val builder = AlertDialog.Builder(context)
         builder.setCancelable(true)
         builder.setTitle("Remove from Favorites")
         builder.setMessage("Are you sure you want to remove this from your favorites?")
         builder.setPositiveButton("Yes") { dialog, which ->
-            // Code to remove the item from favorites
+            removeFavorite(position)
         }
         builder.setNegativeButton("No") { dialog, which ->
             dialog.dismiss()
         }
         builder.show()
     }
+
+    //should remove from firebase and from temp list
+    private fun removeFavorite(position: Int) {
+        val usersFavorites = db.document("users/${user.uid}/")
+        usersFavorites.update("favorites", FieldValue.arrayRemove(eventData[position].id))
+        eventData.removeAt(position)
+        notifyItemRemoved(position)
+    }
+
+
 
 
 
