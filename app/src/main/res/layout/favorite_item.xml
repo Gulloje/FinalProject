@@ -2,42 +2,35 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
+    android:layout_width="wrap_content"
     android:layout_height="wrap_content"
+    android:layout_marginRight="10dp"
     android:foregroundTint="#DD1212">
 
     <androidx.cardview.widget.CardView
-        android:layout_width="386dp"
-        android:layout_height="363dp"
-        android:layout_margin="10dp"
+        android:layout_width="244dp"
+        android:layout_height="231dp"
+        android:layout_margin="8dp"
         android:backgroundTint="#FFFFFF"
         app:cardBackgroundColor="#FFFFFF"
         app:cardCornerRadius="15dp"
 
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
         <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:padding="10dp">
 
             <ImageView
                 android:id="@+id/imageView"
-                android:layout_width="0dp"
-                android:layout_height="208dp"
-                android:layout_marginStart="8dp"
-                android:layout_marginTop="4dp"
-                android:layout_marginEnd="8dp"
+                android:layout_width="216dp"
+                android:layout_height="97dp"
                 android:adjustViewBounds="true"
                 android:scaleType="fitCenter"
-                app:layout_constraintBottom_toTopOf="@+id/textEventName"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHorizontal_bias="0.5"
-                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintStart_toStartOf="@+id/textEventName"
                 app:layout_constraintTop_toTopOf="parent"
                 app:srcCompat="@android:drawable/ic_menu_gallery" />
 
@@ -45,71 +38,37 @@
                 android:id="@+id/textEventName"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
                 android:text="NAME OF EVENT"
                 android:textColor="#3F51B5"
                 android:textColorHint="#732121"
                 android:textSize="20sp"
                 android:textStyle="bold"
                 app:layout_constraintBottom_toTopOf="@+id/textLocation"
-                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintStart_toStartOf="@+id/textLocation"
                 app:layout_constraintTop_toBottomOf="@+id/imageView" />
 
             <TextView
                 android:id="@+id/textLocation"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
                 android:text="EVENT LOCATION"
                 android:textColor="#474747"
-                android:textSize="16sp"
+                android:textSize="12sp"
                 android:textStyle="bold"
-                app:layout_constraintBottom_toTopOf="@+id/textAddress"
-                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintBottom_toTopOf="@+id/textDaysLeft"
+                app:layout_constraintStart_toStartOf="@+id/textDaysLeft"
                 app:layout_constraintTop_toBottomOf="@+id/textEventName" />
-
-            <TextView
-                android:id="@+id/textAddress"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:text="ADDRESS"
-                android:textColor="#474747"
-                app:layout_constraintBottom_toTopOf="@+id/textDate"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/textLocation" />
-
-            <TextView
-                android:id="@+id/textDate"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:text="EVENT DATE"
-                android:textColor="#474747"
-                app:layout_constraintBottom_toTopOf="@+id/textPriceRange"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/textAddress" />
-
-            <TextView
-                android:id="@+id/textPriceRange"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:text="PRICE RANGE"
-                android:textColor="#474747"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/textDate" />
 
             <Button
                 android:id="@+id/btnSeeTickets"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:backgroundTint="#3F51B5"
                 android:padding="10dp"
                 android:shadowColor="#573C3C"
                 android:text="See Tickets"
                 android:textColor="@color/white"
+                android:textSize="12dp"
                 app:cornerRadius="12dp"
                 app:iconPadding="8dp"
                 app:layout_constraintBottom_toBottomOf="parent"
@@ -125,6 +84,17 @@
                 android:button="@android:drawable/btn_star_big_on"
                 app:layout_constraintBottom_toTopOf="@+id/btnSeeTickets"
                 app:layout_constraintEnd_toEndOf="parent" />
+
+            <TextView
+                android:id="@+id/textDaysLeft"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Days Left"
+                android:textColor="#FF0000"
+                android:textSize="16sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/textLocation" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.cardview.widget.CardView>

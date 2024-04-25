@@ -34,7 +34,7 @@ class LoginPage : AppCompatActivity() {
             val signActivityLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
                 if (result.resultCode == Activity.RESULT_OK) {
                     val user = FirebaseAuth.getInstance().currentUser
-                    if (user != null) {
+                    if (user != null && (user.metadata?.creationTimestamp ==user.metadata?.lastSignInTimestamp)) {
                         addUserToFirestore(user)
                     }
                     startActivity(Intent(this, MainActivity::class.java))

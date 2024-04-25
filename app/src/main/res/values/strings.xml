@@ -13,5 +13,6 @@
     <string name="menu_search_ticket">Search Tickets</string>
     <string name="menu_sign_out">Sign-out</string>
     <string name="menu_favorites">Favorites</string>
+    <string name="menu_popular">Popular Near You</string>
 
 </resources>

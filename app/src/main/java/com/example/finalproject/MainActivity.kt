@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.View
 import android.view.inputmethod.InputMethodManager
+import android.widget.TextView
 import android.widget.Toast
 import com.google.android.material.navigation.NavigationView
 import androidx.navigation.findNavController
@@ -48,7 +49,7 @@ class MainActivity : AppCompatActivity() {
         // menu should be considered as top level destinations.
         appBarConfiguration = AppBarConfiguration(
             setOf(
-                R.id.nav_search_ticket, R.id.nav_sign_out, R.id.nav_favorites
+                R.id.nav_search_ticket, R.id.nav_sign_out, R.id.nav_favorites, R.id.nav_popular, R.id.nav_popular
             ), drawerLayout
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
@@ -56,8 +57,15 @@ class MainActivity : AppCompatActivity() {
 
 
         val user = FirebaseAuth.getInstance().currentUser
+
         if (user == null) {
             navView.menu.findItem(R.id.nav_sign_out).title = "Login"
+            navView.getHeaderView(0).findViewById<TextView>(R.id.navUsername).text = "Login below"
+            navView.getHeaderView(0).findViewById<TextView>(R.id.navEmail).text = ""
+
+        } else {
+            navView.getHeaderView(0).findViewById<TextView>(R.id.navUsername).text = "Welcome ${user.displayName}!"
+            navView.getHeaderView(0).findViewById<TextView>(R.id.navEmail).text = "${user.email}"
         }
         //if i need to override the default menu behavior, ex for logging out
         val signOutItem = navView.menu.findItem(R.id.nav_sign_out)
