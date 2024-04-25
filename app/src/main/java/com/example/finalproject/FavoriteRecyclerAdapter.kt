@@ -23,8 +23,7 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 
 
-class FavoriteRecyclerAdapter(private val context: Context, private val eventData: ArrayList<EventData>,
-                              private val userFavorites: ArrayList<String>): RecyclerView.Adapter<FavoriteRecyclerAdapter.FavoriteHolder>()
+class FavoriteRecyclerAdapter(private val context: Context, private val eventData: ArrayList<EventData>): RecyclerView.Adapter<FavoriteRecyclerAdapter.FavoriteHolder>()
 {
     private val user = FirebaseAuth.getInstance()
     private val db = FirebaseFirestore.getInstance()
@@ -46,15 +45,6 @@ class FavoriteRecyclerAdapter(private val context: Context, private val eventDat
 
 
             checkFavorite?.setOnCheckedChangeListener { buttonView, isChecked ->
-                if (user == null) {
-                    Toast.makeText(context, "Must Login to Favorite Events", Toast.LENGTH_SHORT).show()
-                    checkFavorite.isChecked = false
-                    //holder.checkFavorite.visibility = View.GONE //if i think it is better to just hide the button altogether
-                    return@setOnCheckedChangeListener
-                }
-
-                val currentEventId = eventData[adapterPosition].id
-
                 //update favorite status based on checkbox
                 if (!isChecked) {
 
@@ -107,6 +97,7 @@ class FavoriteRecyclerAdapter(private val context: Context, private val eventDat
         return eventData.size
     }
 
+
     private fun createDialog(position: Int) {
         val builder = AlertDialog.Builder(context)
         builder.setCancelable(true)
@@ -122,6 +113,7 @@ class FavoriteRecyclerAdapter(private val context: Context, private val eventDat
     }
 
     //should remove from firebase and from temp list
+    //https://stackoverflow.com/questions/26076965/android-recyclerview-addition-removal-of-items
     private fun removeFavorite(position: Int) {
         val usersFavorites = db.document("users/${user.uid}/")
         usersFavorites.update("favorites", FieldValue.arrayRemove(eventData[position].id))

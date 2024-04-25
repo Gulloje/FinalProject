@@ -1,5 +1,6 @@
 package com.example.finalproject.ui.slideshow
 
+import android.opengl.Visibility
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -18,6 +19,8 @@ import com.example.finalproject.RecyclerAdapter
 import com.example.finalproject.TicketData
 import com.example.finalproject.databinding.FragmentSlideshowBinding
 import com.example.finalproject.ui.home.HomeViewModel
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -42,6 +45,7 @@ class SlideshowFragment : Fragment() {
     private  val userFavorites = ArrayList<EventData>()
     private var arrListFavorites = ArrayList<String>()
     private val eventAPI = initRetrofit().create(EventDataService::class.java)
+    private val user = FirebaseAuth.getInstance()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -53,13 +57,17 @@ class SlideshowFragment : Fragment() {
 
         _binding = FragmentSlideshowBinding.inflate(inflater, container, false)
         val root: View = binding.root
-
+        Log.d(TAG, "onCreateView: ${user.uid}")
+        if (user.uid == null) {
+            binding.textFavTitle.text = "Login to Save and View Favorites and Receive Recommendations"
+        }
 
         return root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
         initRecyclerView()
         model.list.observe(viewLifecycleOwner) {list ->
             if (list.isNotEmpty() && list != arrListFavorites) {
@@ -87,10 +95,8 @@ class SlideshowFragment : Fragment() {
                 if (response.body()?._embedded == null) {
 
                 } else {
-                    Log.d(TAG, "Name ${response.body()!!._embedded.events[0]}")
-                    Log.d(TAG, "Body: ${response.body()}")
-
-
+                    //Log.d(TAG, "Name ${response.body()!!._embedded.events[0]}")
+                    //Log.d(TAG, "Body: ${response.body()}")
                     userFavorites.addAll(response.body()!!._embedded.events)
 
                 }
@@ -104,6 +110,7 @@ class SlideshowFragment : Fragment() {
     }
 
     private fun initRetrofit() : Retrofit {
+
         val retrofit = Retrofit.Builder().baseUrl(BASE_URL)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
@@ -117,7 +124,7 @@ class SlideshowFragment : Fragment() {
 
 
         Log.d(TAG, "initRecyclerView: $userFavorites")
-        adapter = FavoriteRecyclerAdapter(requireContext(), userFavorites, arrListFavorites)
+        adapter = FavoriteRecyclerAdapter(requireContext(), userFavorites)
         recyclerView.adapter = adapter
         recyclerView.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL,false)
 

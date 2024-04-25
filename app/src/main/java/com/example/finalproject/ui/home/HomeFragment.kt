@@ -121,11 +121,10 @@ class HomeFragment : Fragment() {
                         //Toast.makeText(this@MainActivity, "No Events Found", Toast.LENGTH_SHORT).show()
                         binding.noResultsTextView.visibility = View.VISIBLE
                     } else {
-                        Log.d(TAG, "onResponse: ${response.body()}")
-                        Log.d(TAG, "Name ${response.body()!!._embedded.events[0]}")
-                        Log.d(TAG, "Body: ${response.body()}")
+                        //Log.d(TAG, "onResponse: ${response.body()}")
+                        //Log.d(TAG, "Name ${response.body()!!._embedded.events[0]}")
+                        //Log.d(TAG, "Body: ${response.body()}")
                         binding.noResultsTextView.visibility = View.GONE
-
                         eventList.addAll(response.body()!!._embedded.events)
 
                     }
