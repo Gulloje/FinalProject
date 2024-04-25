@@ -13,6 +13,8 @@ interface EventDataService {
                            @Query("apikey") apiKey: String): Call<TicketData>
 
 
-    @GET("discovery/v2/events.json?")
-    fun getEventById(@Query("id") id: String)
+    @GET("discovery/v2/events.json?sort=date,asc")
+    fun getEventById(@Query("id") id: String,
+                     @Query("apikey") apiKey: String): Call<TicketData>
+
 }
