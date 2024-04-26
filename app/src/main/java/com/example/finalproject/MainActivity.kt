@@ -60,7 +60,7 @@ class MainActivity : AppCompatActivity() {
 
         if (user == null) {
             navView.menu.findItem(R.id.nav_sign_out).title = "Login"
-            navView.getHeaderView(0).findViewById<TextView>(R.id.navUsername).text = "Login below"
+            navView.getHeaderView(0).findViewById<TextView>(R.id.navUsername).text = "Login Below"
             navView.getHeaderView(0).findViewById<TextView>(R.id.navEmail).text = ""
 
         } else {
@@ -101,12 +101,7 @@ class MainActivity : AppCompatActivity() {
 
     //HELPER FUNCTIONS
 
-    fun setFragment(fragment: Fragment) {
-        val fragmentManager: FragmentManager = supportFragmentManager
-        fragmentManager.beginTransaction()
-            .replace(R.id.nav_host_fragment_content_main, fragment)
-            .commit()
-    }
+
     //THIS DOES NOT WORK
     private fun View.hideKeyboard() {
         val inputMethodManager = context.getSystemService(Context.INPUT_METHOD_SERVICE) as

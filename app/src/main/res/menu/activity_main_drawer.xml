@@ -17,7 +17,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:icon="@android:drawable/ic_menu_mylocation"
-            android:title="@string/menu_popular" />
+            android:title="@string/menu_discover" />
         <item
             android:id="@+id/nav_sign_out"
             android:icon="@android:drawable/ic_menu_revert"
