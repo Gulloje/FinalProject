@@ -30,14 +30,7 @@ class DiscoverFragment : Fragment() {
 
 
     private lateinit var viewModel: DiscoverViewModel
-    private lateinit var fusedLocationClient: FusedLocationProviderClient
-    private lateinit var locationRequest: LocationRequest
 
-
-    private lateinit var locationCallback: LocationCallback
-
-    // This will store current location info
-    private var currentLocation: Location? = null
     private val TAG = "DiscoverFragment"
 
 
@@ -45,19 +38,6 @@ class DiscoverFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-
-
-        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION)
-            == PackageManager.PERMISSION_GRANTED) {
-            // Permission is granted
-            getUserLocation()
-        } else {
-            ActivityCompat.requestPermissions(requireActivity(),
-                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                5)
-        }
-
-
 
         return inflater.inflate(R.layout.fragment_popular, container, false)
 
@@ -69,31 +49,6 @@ class DiscoverFragment : Fragment() {
         // TODO: Use the ViewModel
     }
 
-
-    //https://www.geeksforgeeks.org/how-to-get-current-location-in-android/#
-    //i just needed longitude and latitude
-    private fun getUserLocation() {
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
-
-        locationRequest = LocationRequest.create().apply {
-            interval = TimeUnit.SECONDS.toMillis(60)
-            fastestInterval = TimeUnit.SECONDS.toMillis(30)
-            maxWaitTime = TimeUnit.MINUTES.toMillis(2)
-            priority = LocationRequest.PRIORITY_HIGH_ACCURACY
-        }
-
-        locationCallback = object : LocationCallback() {
-            override fun onLocationResult(result: LocationResult) {
-                super.onLocationResult(result)
-                result.lastLocation?.let {
-                    Log.d(TAG, "onLocationResult:$it \n Latitude=${it.latitude} Longitude=${it.longitude}")
-                }
-            }
-        }
-
-
-        fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.myLooper())
-    }
 
 
 
