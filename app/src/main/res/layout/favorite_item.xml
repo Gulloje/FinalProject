@@ -9,7 +9,7 @@
 
     <androidx.cardview.widget.CardView
         android:layout_width="244dp"
-        android:layout_height="231dp"
+        android:layout_height="240dp"
         android:layout_margin="8dp"
         android:backgroundTint="#FFFFFF"
         app:cardBackgroundColor="#FFFFFF"
@@ -66,7 +66,7 @@
                 android:backgroundTint="#3F51B5"
                 android:padding="10dp"
                 android:shadowColor="#573C3C"
-                android:text="See Tickets"
+                android:text="Tickets"
                 android:textColor="@color/white"
                 android:textSize="12dp"
                 app:cornerRadius="12dp"

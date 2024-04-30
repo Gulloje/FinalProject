@@ -7,7 +7,7 @@
     tools:context=".ui.location.DiscoverFragment">
 
     <TextView
-        android:id="@+id/textFavTitle"
+        android:id="@+id/textPopular"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
@@ -20,12 +20,37 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <androidx.recyclerview.widget.RecyclerView
-        android:layout_width="385dp"
-        android:layout_height="265dp"
+        android:id="@+id/recyclerPopular"
+        android:layout_width="0dp"
+        android:layout_height="275dp"
+        android:layout_marginTop="6dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.384"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textFavTitle"
+        app:layout_constraintTop_toBottomOf="@+id/textPopular"
+        tools:listitem="@layout/favorite_item" />
+
+    <TextView
+        android:id="@+id/textRecomend"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:text="Recommended For You"
+        android:textColor="#474747"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/recyclerPopular" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycleRecomend"
+        android:layout_width="0dp"
+        android:layout_height="359dp"
+        android:layout_marginTop="4dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textRecomend"
         tools:listitem="@layout/favorite_item" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

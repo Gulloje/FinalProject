@@ -12,6 +12,7 @@ import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.viewModels
 import com.google.android.material.navigation.NavigationView
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
@@ -24,7 +25,10 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
+import androidx.fragment.app.activityViewModels
 import com.example.finalproject.databinding.ActivityMainBinding
+import com.example.finalproject.ui.home.HomeViewModel
+import com.example.finalproject.ui.location.DiscoverViewModel
 import com.firebase.ui.auth.AuthUI
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
@@ -122,7 +126,7 @@ class MainActivity : AppCompatActivity() {
         val navController = findNavController(R.id.nav_host_fragment_content_main)
         return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
     }
-
+    private val viewModel: DiscoverViewModel by viewModels()
     override fun onResumeFragments() {
         super.onResumeFragments()
         //deal with getting location
@@ -132,6 +136,7 @@ class MainActivity : AppCompatActivity() {
             // Permission is granted
             getUserLocation()
             user
+
         } else {
             ActivityCompat.requestPermissions(this,
                 arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION),
@@ -159,10 +164,11 @@ class MainActivity : AppCompatActivity() {
             override fun onLocationResult(result: LocationResult) {
                 super.onLocationResult(result)
                 result.lastLocation?.let {
-                    Log.d(TAG, "onLocationResult:$it \n Latitude=${it.latitude} Longitude=${it.longitude}")
+                    Log.d(TAG, "onLocationResult:$it \n Latitude=${String.format("%.6f", it.latitude)} Longitude=${it.longitude}")
                     val locationData = mutableMapOf<String, Any>()
-                    locationData["Latitude"] = it.latitude
-                    locationData["Longitude"] = it.longitude
+                    locationData["Latitude"] = String.format("%.6f", it.latitude)
+                    locationData["Longitude"] = String.format("%.6f", it.longitude)
+                    viewModel.setUserCoords(String.format("%.6f", it.latitude) +"," + String.format("%.6f", it.longitude))
                     //write location to firestore
                     db.document("users/${user?.uid}").update(locationData)
                         .addOnFailureListener {
@@ -176,20 +182,7 @@ class MainActivity : AppCompatActivity() {
         fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.myLooper())
     }
 
-    //THIS DOES NOT WORK
-    private fun View.hideKeyboard() {
-        val inputMethodManager = context.getSystemService(Context.INPUT_METHOD_SERVICE) as
-                InputMethodManager
-        inputMethodManager.hideSoftInputFromWindow(windowToken, 0)
-    }
 
-    override fun onResume() {
-        super.onResume()
-        //want to hide the keyboard when they go back to it
-        //view = findViewById(android.R.id.content).getRootView().getWindowToken();  https://rmirabelle.medium.com/close-hide-the-soft-keyboard-in-android-db1da22b09d2
-        findViewById<View>(android.R.id.content).hideKeyboard()
-
-    }
 
 
 

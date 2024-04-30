@@ -1,12 +1,10 @@
 package com.example.finalproject.ui.slideshow
 
-import android.opengl.Visibility
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.ViewModelProvider
@@ -15,12 +13,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.finalproject.EventData
 import com.example.finalproject.EventDataService
 import com.example.finalproject.FavoriteRecyclerAdapter
-import com.example.finalproject.RecyclerAdapter
 import com.example.finalproject.TicketData
 import com.example.finalproject.databinding.FragmentSlideshowBinding
 import com.example.finalproject.ui.home.HomeViewModel
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -59,7 +55,7 @@ class SlideshowFragment : Fragment() {
         val root: View = binding.root
         Log.d(TAG, "onCreateView: ${user.uid}")
         if (user.uid == null) {
-            binding.textFavTitle.text = "Login to Save and View Favorites and Receive Recommendations"
+            binding.textFavorites.text = "Login to Save and View Favorites and Receive Recommendations"
         }
 
         return root
@@ -121,10 +117,8 @@ class SlideshowFragment : Fragment() {
 
     private fun initRecyclerView() {
         recyclerView = binding.favoriteRecycler
-
-
         Log.d(TAG, "initRecyclerView: $userFavorites")
-        adapter = FavoriteRecyclerAdapter(requireContext(), userFavorites)
+        adapter = FavoriteRecyclerAdapter(requireContext(), userFavorites,false)
         recyclerView.adapter = adapter
         recyclerView.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL,false)
 

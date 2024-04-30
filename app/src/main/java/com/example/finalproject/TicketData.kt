@@ -16,7 +16,8 @@ data class EventData(
     val dates: Dates,
     val _embedded: EmbeddedVenue,
     val priceRanges: List<PriceRangeData>,
-    val id: String
+    val id: String,
+    val distance: Double?
 )
 data class Images(
     val width: Int,

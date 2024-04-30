@@ -21,6 +21,7 @@ import com.example.finalproject.EventData
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import java.text.SimpleDateFormat
 import java.util.Date
 import kotlin.math.ceil
@@ -168,13 +169,23 @@ class RecyclerAdapter(private val context: Context, private val eventList: Array
     }
 
     private fun addFavorite(eventId: String) {
+        //add it to the users favorites and increment to the favorited events
         val usersFavorites = db.document("users/${user}")
         usersFavorites.update("favorites", FieldValue.arrayUnion(eventId)) //https://firebase.google.com/docs/firestore/manage-data/add-data
+        val eventToAdd = mutableMapOf<String, Any>()
+        eventToAdd[eventId] = FieldValue.increment(1);
+        val eventRef = db.collection("favoritedEvents").document("favoriteEventsCounter")
+        eventRef.update(eventToAdd)
 
     }
+
     private fun deleteFavorite(eventId: String) {
         val usersFavorites = db.document("users/${user}/")
         usersFavorites.update("favorites", FieldValue.arrayRemove(eventId))
+        val eventToAdd = mutableMapOf<String, Any>()
+        eventToAdd[eventId] = FieldValue.increment(-1);
+        val eventRef = db.collection("favoritedEvents").document("favoriteEventsCounter")
+        eventRef.update(eventToAdd)
 
     }
 }
