@@ -14,6 +14,7 @@ import com.example.finalproject.EventData
 import com.example.finalproject.EventDataService
 import com.example.finalproject.FavoriteRecyclerAdapter
 import com.example.finalproject.TicketData
+import com.example.finalproject.UserFavorites
 import com.example.finalproject.databinding.FragmentSlideshowBinding
 import com.example.finalproject.ui.home.HomeViewModel
 import com.google.firebase.auth.FirebaseAuth
@@ -22,6 +23,7 @@ import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.util.ArrayList
 
 class SlideshowFragment : Fragment() {
 
@@ -38,8 +40,7 @@ class SlideshowFragment : Fragment() {
     private val apiKey = "yL6rMKTtCDSqaZBhQ1FCUHf4z6mO3htG"
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: FavoriteRecyclerAdapter
-    private  val userFavorites = ArrayList<EventData>()
-    private var arrListFavorites = ArrayList<String>()
+    //private  val userFavorites = ArrayList<EventData>()
     private val eventAPI = initRetrofit().create(EventDataService::class.java)
     private val user = FirebaseAuth.getInstance()
 
@@ -63,20 +64,8 @@ class SlideshowFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         initRecyclerView()
-        model.list.observe(viewLifecycleOwner) {list ->
-            if (list.isNotEmpty() && list != arrListFavorites) {
-                arrListFavorites = list
-                Log.d(TAG, "Updated Favorites: $list")
-                loadFavorites()
-                adapter.notifyDataSetChanged()
-            } else if(list.isEmpty()) {
-                binding.textNoFavs.visibility = View.VISIBLE
-
-            }
-        }
-        Log.d(TAG, "onCreateView2: $arrListFavorites")
+        loadFavorites()
 
     }
 
@@ -85,8 +74,10 @@ class SlideshowFragment : Fragment() {
         _binding = null
     }
 
+    //have the ids of the favorited events, but need the actual data when you want to load exclusively favorites
     private fun loadFavorites() {
-        val idString = arrListFavorites.joinToString(separator =",")
+        val idString = UserFavorites.favoriteIds.joinToString(separator=",")
+        Log.d(TAG, "loadFavorites: $idString")
 
         eventAPI.getEventById(idString, apiKey).enqueue(object :
             Callback<TicketData?> {
@@ -94,10 +85,11 @@ class SlideshowFragment : Fragment() {
                 if (response.body()?._embedded == null) {
 
                 } else {
-                    userFavorites.addAll(response.body()!!._embedded.events)
-                    val filtered = userFavorites.filter{it.isEventPassed == false}
-                    userFavorites.clear()
-                    userFavorites.addAll(filtered)
+                    UserFavorites.addFavorite(response.body()!!._embedded.events)
+                    //userFavorites.addAll(response.body()!!._embedded.events)
+                    val filtered = UserFavorites.favoriteEvents.filter{it.isEventPassed == false}
+                    UserFavorites.favoriteEvents.clear()
+                    UserFavorites.addFavorite(filtered)
                 }
                 adapter.notifyDataSetChanged()
                 //Log.d(TAG, "initRecyclerView: $userFavorites")
@@ -118,10 +110,11 @@ class SlideshowFragment : Fragment() {
     }
 
 
+
     private fun initRecyclerView() {
         recyclerView = binding.favoriteRecycler
-        Log.d(TAG, "initRecyclerView: $userFavorites")
-        adapter = FavoriteRecyclerAdapter(requireContext(), userFavorites,false)
+        Log.d(TAG, "initRecyclerView: ${UserFavorites.favoriteIds}")
+        adapter = FavoriteRecyclerAdapter(requireContext(), UserFavorites.favoriteEvents,false)
         recyclerView.adapter = adapter
         recyclerView.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL,false)
 

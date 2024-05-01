@@ -19,6 +19,7 @@ import com.example.finalproject.EventData
 import com.example.finalproject.EventDataService
 import com.example.finalproject.RecyclerAdapter
 import com.example.finalproject.TicketData
+import com.example.finalproject.UserFavorites
 import com.example.finalproject.databinding.FragmentHomeBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -77,6 +78,8 @@ class HomeFragment : Fragment() {
             search()
         }
         initRecyclerView()
+
+        Log.d(TAG, "onViewCreated: ${UserFavorites.printFavorites()}")
 
 
     }
@@ -146,6 +149,8 @@ class HomeFragment : Fragment() {
         builder.setMessage(message)
         builder.show()
     }
+    //when first load recycler view (done on startup regardless), have to determine what events are marked as favorite
+    //then can just save this to the UserFavorites Singleton so dont have to use api constantly
     private fun initRecyclerView() {
         recyclerView = binding.recycleView
         //i needed to send a function to set the seeMore button to when the recylerview in initialized
@@ -156,12 +161,14 @@ class HomeFragment : Fragment() {
             .addOnSuccessListener {document ->
                 if (document.data?.get("favorites") != null) {
                     favorites = document.data?.get("favorites") as ArrayList<String>
-                    adapter = RecyclerAdapter(requireContext(), eventList, favorites) {
+                    UserFavorites.addIdAsList(favorites)
+                    adapter = RecyclerAdapter(requireContext(), eventList, UserFavorites.favoriteIds) {
                         seeMore()
                     };
                     recyclerView.adapter = adapter
                     recyclerView.layoutManager = LinearLayoutManager(requireContext())
-                    model.setList(favorites);
+
+
                 }
             }
             .addOnFailureListener {
@@ -170,7 +177,6 @@ class HomeFragment : Fragment() {
                 };
                 recyclerView.adapter = adapter
                 recyclerView.layoutManager = LinearLayoutManager(requireContext())
-                model.setList(favorites);
 
             }
         adapter = RecyclerAdapter(requireContext(), eventList, favorites) {
@@ -178,7 +184,8 @@ class HomeFragment : Fragment() {
         };
         recyclerView.adapter = adapter
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
-        model.setList(favorites);
+        Log.d(TAG, "onViewCreated: ${UserFavorites.printFavorites()}")
+
 
     }
     private fun initRetrofit() : Retrofit {

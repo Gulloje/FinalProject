@@ -18,6 +18,7 @@ import com.example.finalproject.EventData
 import com.example.finalproject.EventDataService
 import com.example.finalproject.FavoriteRecyclerAdapter
 import com.example.finalproject.TicketData
+import com.example.finalproject.UserFavorites
 import com.example.finalproject.databinding.FragmentPopularBinding
 import com.example.finalproject.eventPassed
 import com.example.finalproject.ui.home.HomeViewModel
@@ -61,6 +62,7 @@ class DiscoverFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         initRecyclerView()
         loadNearYou()
+        UserFavorites.printFavorites()
 
     }
 

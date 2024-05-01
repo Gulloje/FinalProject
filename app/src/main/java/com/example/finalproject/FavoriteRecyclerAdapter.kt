@@ -18,6 +18,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.firebase.ui.auth.data.model.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
@@ -66,10 +67,6 @@ class FavoriteRecyclerAdapter(private val context: Context, private val eventDat
 
     override fun onBindViewHolder(holder: FavoriteHolder, position: Int) {
         val curItem = eventData[position]
-
-
-
-
         val sdf = SimpleDateFormat("yyyy-MM-dd")
 
         if (showDistance) {
@@ -133,6 +130,7 @@ class FavoriteRecyclerAdapter(private val context: Context, private val eventDat
         usersFavorites.update("favorites", FieldValue.arrayRemove(eventData[position].id))
         eventData.removeAt(position)
         notifyItemRemoved(position)
+        UserFavorites.removeFavorite(eventData[position])
 
     }
 
