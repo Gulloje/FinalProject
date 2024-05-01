@@ -9,7 +9,7 @@
 
     <androidx.cardview.widget.CardView
         android:layout_width="244dp"
-        android:layout_height="240dp"
+        android:layout_height="255dp"
         android:layout_margin="8dp"
         android:backgroundTint="#FFFFFF"
         app:cardBackgroundColor="#FFFFFF"
@@ -53,7 +53,7 @@
                 android:layout_height="wrap_content"
                 android:text="EVENT LOCATION"
                 android:textColor="#474747"
-                android:textSize="12sp"
+                android:textSize="13sp"
                 android:textStyle="bold"
                 app:layout_constraintBottom_toTopOf="@+id/textDaysLeft"
                 app:layout_constraintStart_toStartOf="@+id/textDaysLeft"

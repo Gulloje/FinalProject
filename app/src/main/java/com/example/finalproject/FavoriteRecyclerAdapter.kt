@@ -55,6 +55,7 @@ class FavoriteRecyclerAdapter(private val context: Context, private val eventDat
                     createDialog(adapterPosition)
                     notifyDataSetChanged()
                 }
+                //need to make it so you c an favorite it on the discover page
             }
         }
     }
@@ -80,7 +81,8 @@ class FavoriteRecyclerAdapter(private val context: Context, private val eventDat
             val millionSeconds = date.time - Calendar.getInstance().timeInMillis
             var daysLeft = millionSeconds/(24*60*60*1000)+1
             if (daysLeft < 1) { //COMEBACK, idk if this works if you send an old id
-                removeFavorite(position)
+                val usersFavorites = db.document("users/${user.uid}/")
+                usersFavorites.update("favorites", FieldValue.arrayRemove(eventData[position].id))
             } else if (daysLeft > 21) { //https://stackoverflow.com/questions/8472349/how-to-set-text-color-of-a-textview-programmatically
                 holder.timeLeft.setTextColor(Color.parseColor("#00C40D"))
             } else {
@@ -91,7 +93,7 @@ class FavoriteRecyclerAdapter(private val context: Context, private val eventDat
         }
         holder.eventName.text = "${curItem.name}"
         holder.eventLocation.text = "${curItem._embedded.venues[0].name}"
-        holder.checkFavorite.isChecked = eventData.contains(curItem)
+        holder.checkFavorite.isChecked = UserFavorites.favoriteIds.contains(curItem.id)
 
         val highestQualityImage = curItem.images.maxByOrNull {
             it.width.toInt() * it.height.toInt()
@@ -131,6 +133,18 @@ class FavoriteRecyclerAdapter(private val context: Context, private val eventDat
         UserFavorites.removeFavorite(eventData[position])
         notifyItemRemoved(position)
 
+
+    }
+
+    private fun addFavorite(event: EventData) {
+        //add it to the users favorites and increment to the favorited events
+        val usersFavorites = db.document("users/${user}")
+        usersFavorites.update("favorites", FieldValue.arrayUnion(event.id)) //https://firebase.google.com/docs/firestore/manage-data/add-data
+        val eventToAdd = mutableMapOf<String, Any>()
+        eventToAdd[event.id] = FieldValue.increment(1);
+        val eventRef = db.collection("favoritedEvents").document("favoriteEventsCounter")
+        eventRef.update(eventToAdd)
+        UserFavorites.addFavorite(event)
 
     }
 

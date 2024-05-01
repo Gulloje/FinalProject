@@ -97,11 +97,13 @@ class MainActivity : AppCompatActivity() {
         //if i need to override the default menu behavior, ex for logging out
         val signOutItem = navView.menu.findItem(R.id.nav_sign_out)
         signOutItem.setOnMenuItemClickListener {
+            UserFavorites.resetFavorites()
             AuthUI.getInstance().signOut(this)
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
                         val intent = Intent(this, LoginPage::class.java)
                         startActivity(intent)
+
                         finish()
                     } else {
                         Toast.makeText(this, "Cannot Log Out at This Time", Toast.LENGTH_SHORT).show()

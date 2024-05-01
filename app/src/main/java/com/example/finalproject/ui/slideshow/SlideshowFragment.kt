@@ -54,17 +54,23 @@ class SlideshowFragment : Fragment() {
         _binding = FragmentSlideshowBinding.inflate(inflater, container, false)
         val root: View = binding.root
         Log.d(TAG, "onCreateView: ${user.uid}")
-        if (user.uid == null) {
-            binding.textFavorites.text = "Login to Save and View Favorites and Receive Recommendations"
-        }
+
 
         return root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        initRecyclerView()
-        loadFavorites()
+        if (user.uid == null) {
+            binding.textFavorites.text = "Login to Save and View Favorites and Receive Recommendations"
+        }
+        if (!UserFavorites.favoriteIds.isEmpty()) {
+            initRecyclerView()
+            loadFavorites()
+        }
+
+
+
 
     }
 

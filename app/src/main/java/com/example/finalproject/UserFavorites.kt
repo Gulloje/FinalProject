@@ -17,12 +17,6 @@ object UserFavorites {
 
 
     }
-    /*fun addEventDataAsList(eventList: List<EventData>) {
-        val unique = eventList.toSet() // Convert to set to remove duplicates
-        unique.forEach {
-            addFavorite(it) // addFavorite already checks for duplicates
-        }
-    }*/
 
     fun removeFavorite(event: EventData) {
         favoriteEvents.remove(event)
@@ -45,6 +39,11 @@ object UserFavorites {
             }
         }
 
+    }
+
+    fun resetFavorites() {
+        favoriteEvents.clear()
+        favoriteIds.clear()
     }
 
     fun printFavorites() {

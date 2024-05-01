@@ -177,8 +177,6 @@ class RecyclerAdapter(private val context: Context, private val eventList: Array
         eventRef.update(eventToAdd)
         UserFavorites.addFavorite(event)
 
-
-
     }
 
     private fun deleteFavorite(event: EventData) {
