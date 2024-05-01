@@ -154,7 +154,7 @@ class HomeFragment : Fragment() {
     private fun initRecyclerView() {
         recyclerView = binding.recycleView
         //i needed to send a function to set the seeMore button to when the recylerview in initialized
-        var favorites = ArrayList<String>()
+        var favorites: ArrayList<String>
 
         //COMEBACK: trying to factor stuff out made this crash when user not logged in idk whats going on here
         db.document("users/${user.uid}").get()
@@ -162,28 +162,16 @@ class HomeFragment : Fragment() {
                 if (document.data?.get("favorites") != null) {
                     favorites = document.data?.get("favorites") as ArrayList<String>
                     UserFavorites.addIdAsList(favorites)
-                    adapter = RecyclerAdapter(requireContext(), eventList, UserFavorites.favoriteIds) {
-                        seeMore()
-                    };
-                    recyclerView.adapter = adapter
-                    recyclerView.layoutManager = LinearLayoutManager(requireContext())
+                    theWTFFunction()
 
 
                 }
             }
             .addOnFailureListener {
-                adapter = RecyclerAdapter(requireContext(), eventList, favorites) {
-                    seeMore()
-                };
-                recyclerView.adapter = adapter
-                recyclerView.layoutManager = LinearLayoutManager(requireContext())
+                theWTFFunction()
 
             }
-        adapter = RecyclerAdapter(requireContext(), eventList, favorites) {
-            seeMore()
-        };
-        recyclerView.adapter = adapter
-        recyclerView.layoutManager = LinearLayoutManager(requireContext())
+        theWTFFunction()
         Log.d(TAG, "onViewCreated: ${UserFavorites.printFavorites()}")
 
 
@@ -194,6 +182,14 @@ class HomeFragment : Fragment() {
             .build()
 
         return retrofit
+    }
+
+    private fun theWTFFunction() {
+        adapter = RecyclerAdapter(requireContext(), eventList, UserFavorites.favoriteIds) {
+            seeMore()
+        };
+        recyclerView.adapter = adapter
+        recyclerView.layoutManager = LinearLayoutManager(requireContext())
     }
 
     private fun View.hideKeyboard() {

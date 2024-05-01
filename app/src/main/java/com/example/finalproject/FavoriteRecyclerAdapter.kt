@@ -79,7 +79,7 @@ class FavoriteRecyclerAdapter(private val context: Context, private val eventDat
             var date = sdf.parse(curItem.dates.start.localDate)
             val millionSeconds = date.time - Calendar.getInstance().timeInMillis
             var daysLeft = millionSeconds/(24*60*60*1000)+1
-            if (daysLeft < 1) { //COMEBACK, idk what happens if you send an old id
+            if (daysLeft < 1) { //COMEBACK, idk if this works if you send an old id
                 removeFavorite(position)
             } else if (daysLeft > 21) { //https://stackoverflow.com/questions/8472349/how-to-set-text-color-of-a-textview-programmatically
                 holder.timeLeft.setTextColor(Color.parseColor("#00C40D"))
@@ -128,9 +128,9 @@ class FavoriteRecyclerAdapter(private val context: Context, private val eventDat
     private fun removeFavorite(position: Int) {
         val usersFavorites = db.document("users/${user.uid}/")
         usersFavorites.update("favorites", FieldValue.arrayRemove(eventData[position].id))
-        eventData.removeAt(position)
-        notifyItemRemoved(position)
         UserFavorites.removeFavorite(eventData[position])
+        notifyItemRemoved(position)
+
 
     }
 

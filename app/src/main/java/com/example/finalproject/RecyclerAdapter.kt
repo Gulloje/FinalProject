@@ -69,12 +69,11 @@ class RecyclerAdapter(private val context: Context, private val eventList: Array
                 if (isChecked) {
                     if (!userFavorites.contains(currentEventId)) {
                         addFavorite(eventList[position])
-                        userFavorites.add(currentEventId)
                     }
                 } else {
                     if (userFavorites.contains(currentEventId)) {
                         deleteFavorite(eventList[position])
-                        userFavorites.remove(currentEventId)
+
                     }
                 }
             }

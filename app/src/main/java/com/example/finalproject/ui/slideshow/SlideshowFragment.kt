@@ -40,7 +40,6 @@ class SlideshowFragment : Fragment() {
     private val apiKey = "yL6rMKTtCDSqaZBhQ1FCUHf4z6mO3htG"
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: FavoriteRecyclerAdapter
-    //private  val userFavorites = ArrayList<EventData>()
     private val eventAPI = initRetrofit().create(EventDataService::class.java)
     private val user = FirebaseAuth.getInstance()
 
@@ -75,6 +74,7 @@ class SlideshowFragment : Fragment() {
     }
 
     //have the ids of the favorited events, but need the actual data when you want to load exclusively favorites
+    //the data
     private fun loadFavorites() {
         val idString = UserFavorites.favoriteIds.joinToString(separator=",")
         Log.d(TAG, "loadFavorites: $idString")
@@ -86,7 +86,6 @@ class SlideshowFragment : Fragment() {
 
                 } else {
                     UserFavorites.addFavorite(response.body()!!._embedded.events)
-                    //userFavorites.addAll(response.body()!!._embedded.events)
                     val filtered = UserFavorites.favoriteEvents.filter{it.isEventPassed == false}
                     UserFavorites.favoriteEvents.clear()
                     UserFavorites.addFavorite(filtered)
