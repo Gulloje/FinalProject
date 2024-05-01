@@ -2,6 +2,7 @@ package com.example.finalproject.ui.location
 
 
 
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
@@ -9,6 +10,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.CheckBox
+import androidx.annotation.RequiresApi
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -17,6 +19,7 @@ import com.example.finalproject.EventDataService
 import com.example.finalproject.FavoriteRecyclerAdapter
 import com.example.finalproject.TicketData
 import com.example.finalproject.databinding.FragmentPopularBinding
+import com.example.finalproject.eventPassed
 import com.example.finalproject.ui.home.HomeViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -75,19 +78,23 @@ class DiscoverFragment : Fragment() {
             //now need id of events
             db.document("favoritedEvents/favoriteEventsCounter").get()
                 .addOnSuccessListener { document ->
-
+                    //comeback to only get ids with a certain number of favorites
                     var idString = document.data?.keys?.joinToString(separator = ",").toString()
                     Log.d(TAG, "loadNearYou: $idString")
                     //Log.d(TAG, "loadNearYou: ${document.data?.keys}")
 
                     eventAPI.getEventByGeoPoint(geoString,idString, apiKey).enqueue(object :
                         Callback<TicketData?> {
+                        @RequiresApi(Build.VERSION_CODES.O)
                         override fun onResponse(call: Call<TicketData?>, response: Response<TicketData?>) {
                             if (response.body()?._embedded == null) {
 
                             } else {
                                 Log.d(TAG, "onResponse: ${response.body()!!._embedded.events}")
                                 popularEventData.addAll(response.body()!!._embedded.events)
+                                val filtered = popularEventData.filter{ it.distance <= 70 && !eventPassed(it)}
+                                popularEventData.clear()
+                                popularEventData.addAll(filtered)
                                 popularAdapter.notifyDataSetChanged()
                             }
 

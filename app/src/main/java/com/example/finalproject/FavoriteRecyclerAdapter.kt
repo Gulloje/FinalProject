@@ -68,12 +68,12 @@ class FavoriteRecyclerAdapter(private val context: Context, private val eventDat
         val curItem = eventData[position]
 
 
-        holder.eventName.text = "${curItem.name}"
-        holder.eventLocation.text = "${curItem._embedded.venues[0].name}"
+
 
         val sdf = SimpleDateFormat("yyyy-MM-dd")
 
         if (showDistance) {
+
             holder.timeLeft.text = curItem.distance.toString() + " Miles Away!"
             holder.timeLeft.setTextColor(Color.parseColor("#00C40D"))
 
@@ -83,7 +83,7 @@ class FavoriteRecyclerAdapter(private val context: Context, private val eventDat
             val millionSeconds = date.time - Calendar.getInstance().timeInMillis
             var daysLeft = millionSeconds/(24*60*60*1000)+1
             if (daysLeft < 1) { //COMEBACK, idk what happens if you send an old id
-                //removeFavorite(position)
+                removeFavorite(position)
             } else if (daysLeft > 21) { //https://stackoverflow.com/questions/8472349/how-to-set-text-color-of-a-textview-programmatically
                 holder.timeLeft.setTextColor(Color.parseColor("#00C40D"))
             } else {
@@ -92,9 +92,9 @@ class FavoriteRecyclerAdapter(private val context: Context, private val eventDat
             holder.timeLeft.text = "$daysLeft Days Left!"
 
         }
+        holder.eventName.text = "${curItem.name}"
+        holder.eventLocation.text = "${curItem._embedded.venues[0].name}"
         holder.checkFavorite.isChecked = eventData.contains(curItem)
-
-
 
         val highestQualityImage = curItem.images.maxByOrNull {
             it.width.toInt() * it.height.toInt()

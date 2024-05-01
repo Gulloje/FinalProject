@@ -95,6 +95,9 @@ class SlideshowFragment : Fragment() {
 
                 } else {
                     userFavorites.addAll(response.body()!!._embedded.events)
+                    val filtered = userFavorites.filter{it.isEventPassed == false}
+                    userFavorites.clear()
+                    userFavorites.addAll(filtered)
                 }
                 adapter.notifyDataSetChanged()
                 //Log.d(TAG, "initRecyclerView: $userFavorites")

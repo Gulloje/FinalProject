@@ -1,5 +1,9 @@
 package com.example.finalproject
 
+import android.os.Build
+import androidx.annotation.RequiresApi
+import java.time.LocalDate
+
 data class TicketData(
 
     val _embedded: EmbeddedData
@@ -17,7 +21,9 @@ data class EventData(
     val _embedded: EmbeddedVenue,
     val priceRanges: List<PriceRangeData>,
     val id: String,
-    val distance: Double?
+    val distance: Double,
+    var isEventPassed: Boolean = false
+
 )
 data class Images(
     val width: Int,
@@ -58,4 +64,14 @@ data class PriceRangeData(
     val max: Double,
     val currency: String
 )
+
+@RequiresApi(Build.VERSION_CODES.O)
+fun eventPassed(eventData: EventData) : Boolean {
+    val curDate = LocalDate.now()
+    val eventDate = LocalDate.parse(eventData.dates.start.localDate)
+    eventData.isEventPassed = eventDate.isBefore(curDate)
+    return eventDate.isBefore(curDate)
+
+
+}
 

@@ -177,6 +177,8 @@ class RecyclerAdapter(private val context: Context, private val eventList: Array
         val eventRef = db.collection("favoritedEvents").document("favoriteEventsCounter")
         eventRef.update(eventToAdd)
 
+
+
     }
 
     private fun deleteFavorite(eventId: String) {
