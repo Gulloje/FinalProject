@@ -22,6 +22,7 @@ import com.firebase.ui.auth.data.model.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlin.math.roundToInt
 
 
 class FavoriteRecyclerAdapter(private val context: Context, private val eventData: ArrayList<EventData>,
@@ -38,6 +39,7 @@ class FavoriteRecyclerAdapter(private val context: Context, private val eventDat
         val image = itemView.findViewById<ImageView>(R.id.imageView)
         val btnSeeTickets = itemView.findViewById<Button>(R.id.btnSeeTickets)
         val checkFavorite = itemView.findViewById<CheckBox>(R.id.checkFavorite)
+        val textDate = itemView.findViewById<TextView>(R.id.textDate)
 
 
         init {
@@ -48,14 +50,16 @@ class FavoriteRecyclerAdapter(private val context: Context, private val eventDat
             }
 
 
+            if (!showDistance) {
+                checkFavorite?.setOnCheckedChangeListener { buttonView, isChecked ->
+                    //update favorite status based on checkbox
+                    if (!isChecked) {
+                        createDialog(adapterPosition)
+                        notifyDataSetChanged()
+                    }
+                    //need to make it so you c an favorite it on the discover page
+            }
 
-            checkFavorite?.setOnCheckedChangeListener { buttonView, isChecked ->
-                //update favorite status based on checkbox
-                if (!isChecked) {
-                    createDialog(adapterPosition)
-                    notifyDataSetChanged()
-                }
-                //need to make it so you c an favorite it on the discover page
             }
         }
     }
@@ -71,8 +75,12 @@ class FavoriteRecyclerAdapter(private val context: Context, private val eventDat
         val sdf = SimpleDateFormat("yyyy-MM-dd")
 
         if (showDistance) {
+            if(curItem.distance.roundToInt() < 1) {
+                holder.timeLeft.text = "1 Mile Away!"
+            } else {
+                holder.timeLeft.text = curItem.distance.roundToInt().toString() + " Miles Away!"
+            }
 
-            holder.timeLeft.text = curItem.distance.toString() + " Miles Away!"
             holder.timeLeft.setTextColor(Color.parseColor("#00C40D"))
 
         } else  {
@@ -93,7 +101,17 @@ class FavoriteRecyclerAdapter(private val context: Context, private val eventDat
         }
         holder.eventName.text = "${curItem.name}"
         holder.eventLocation.text = "${curItem._embedded.venues[0].name}"
-        holder.checkFavorite.isChecked = UserFavorites.favoriteIds.contains(curItem.id)
+        if(UserFavorites.favoriteIds.contains(curItem.id)) {
+            holder.checkFavorite.isChecked = true
+        } else {
+            holder.checkFavorite.isChecked = false
+        }
+        //holder.checkFavorite.isChecked = UserFavorites.favoriteIds.contains(curItem.id)
+
+        var stringDate = curItem.dates.start.localDate
+        var date = java.text.SimpleDateFormat("yyyy-MM-dd").parse(stringDate)
+        stringDate = java.text.SimpleDateFormat("MM/dd/yyyy").format(date)
+        holder.textDate.text = stringDate
 
         val highestQualityImage = curItem.images.maxByOrNull {
             it.width.toInt() * it.height.toInt()

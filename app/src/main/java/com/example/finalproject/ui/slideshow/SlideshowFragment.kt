@@ -1,10 +1,12 @@
 package com.example.finalproject.ui.slideshow
 
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.ViewModelProvider
@@ -16,6 +18,7 @@ import com.example.finalproject.FavoriteRecyclerAdapter
 import com.example.finalproject.TicketData
 import com.example.finalproject.UserFavorites
 import com.example.finalproject.databinding.FragmentSlideshowBinding
+import com.example.finalproject.eventPassed
 import com.example.finalproject.ui.home.HomeViewModel
 import com.google.firebase.auth.FirebaseAuth
 import retrofit2.Call
@@ -87,12 +90,13 @@ class SlideshowFragment : Fragment() {
 
         eventAPI.getEventById(idString, apiKey).enqueue(object :
             Callback<TicketData?> {
+            @RequiresApi(Build.VERSION_CODES.O)
             override fun onResponse(call: Call<TicketData?>, response: Response<TicketData?>) {
                 if (response.body()?._embedded == null) {
 
                 } else {
                     UserFavorites.addFavorite(response.body()!!._embedded.events)
-                    val filtered = UserFavorites.favoriteEvents.filter{it.isEventPassed == false}
+                    val filtered = UserFavorites.favoriteEvents.filter{!eventPassed(it)}
                     UserFavorites.favoriteEvents.clear()
                     UserFavorites.addFavorite(filtered)
                 }

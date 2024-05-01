@@ -18,12 +18,14 @@ interface EventDataService {
                      @Query("apikey") apiKey: String): Call<TicketData>
 
     @GET("discovery/v2/suggest?")
-    fun getSuggestedByDistance(@Query("getPoint") getPoint: String, //geoPoint just lat,long
-                               @Query("apikey") apiKey: String)
+    fun getSuggestedByDistance(@Query("geoPoint") geoPoint: String, //geoPoint just lat,long
+                               @Query("apikey") apiKey: String): Call<TicketData>
 
-    @GET("discovery/v2/events.json?sort=date,asc")
+    @GET("discovery/v2/events.json?sort=distance,asc")
     fun getEventByGeoPoint(@Query("geoPoint") geoPoint: String,
                            @Query("id") id: String,
                            @Query("apikey") apiKey: String): Call<TicketData>
+
+
 
 }

@@ -92,12 +92,16 @@ class DiscoverFragment : Fragment() {
                             if (response.body()?._embedded == null) {
 
                             } else {
-                                Log.d(TAG, "onResponse: ${response.body()!!._embedded.events}")
+                                //Log.d(TAG, "onResponse: ${response.body()!!._embedded.events}")
                                 popularEventData.addAll(response.body()!!._embedded.events)
                                 val filtered = popularEventData.filter{ it.distance <= 70 && !eventPassed(it)}
                                 popularEventData.clear()
                                 popularEventData.addAll(filtered)
                                 popularAdapter.notifyDataSetChanged()
+                                if(popularEventData.size < 20) {
+                                    //suggestions endpoint only lets you get up to 5 more events
+                                    fillInMoreSuggestions(geoString)
+                                }
                             }
 
                         }
@@ -105,10 +109,34 @@ class DiscoverFragment : Fragment() {
                             Log.d(TAG, "onFailure: $t")
                         }
                     })
+
+
                 }
         }
 
 
+    }
+
+    private fun fillInMoreSuggestions(geoString: String) {
+
+        Log.d(TAG, "fillInMoreSuggestions: $geoString")
+        eventAPI.getSuggestedByDistance(geoString, apiKey).enqueue(object :
+            Callback<TicketData?> {
+            @RequiresApi(Build.VERSION_CODES.O)
+            override fun onResponse(call: Call<TicketData?>, response: Response<TicketData?>) {
+                if (response.body()?._embedded == null) {
+
+                } else {
+                    popularEventData.addAll(response.body()!!._embedded.events)
+                    Log.d(TAG, "suggest respoonse: ${response.body()!!}")
+                    popularAdapter.notifyDataSetChanged()
+                }
+
+            }
+            override fun onFailure(call: Call<TicketData?>, t: Throwable) {
+                Log.d(TAG, "onFailure: $t")
+            }
+        })
     }
 
 
