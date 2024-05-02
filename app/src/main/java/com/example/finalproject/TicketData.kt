@@ -1,6 +1,7 @@
 package com.example.finalproject
 
 import android.os.Build
+import android.provider.MediaStore.Audio.Genres
 import androidx.annotation.RequiresApi
 import java.time.LocalDate
 
@@ -22,6 +23,7 @@ data class EventData(
     val priceRanges: List<PriceRangeData>,
     val id: String,
     val distance: Double,
+    val classifications: List<Classifications>,
     var isEventPassed: Boolean = false
 
 )
@@ -32,6 +34,16 @@ data class Images(
 )
 data class Dates(
     val start: Start
+)
+data class Classifications(
+    val genre: Genre,
+    val segment: Segment
+)
+data class Genre (
+    val name: String
+)
+data class Segment(
+    val name: String
 )
 
 data class Start(

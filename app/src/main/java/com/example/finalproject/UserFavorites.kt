@@ -50,4 +50,16 @@ object UserFavorites {
         Log.d(TAG, "Singleton printFavorites: ${favoriteIds }")
     }
 
+    fun recommendationLogic() :Map<String, Int> {
+        val genreCount = mutableMapOf<String, Int>()
+        for(event in favoriteEvents) {
+            //segment is more vaugue then genre, ex segment = sport, genre = baseball
+            //val segmentName = event.classifications[0].segment.name
+            val genre = event.classifications[0].genre.name
+            genreCount[genre] = genreCount.getOrDefault(genre,0) + 1
+        }
+        Log.d(TAG, "recomendation logic $genreCount")
+        return genreCount
+    }
+
 }

@@ -16,6 +16,7 @@ import android.widget.Button
 import android.widget.CheckBox
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.firebase.ui.auth.data.model.User
@@ -43,12 +44,12 @@ class FavoriteRecyclerAdapter(private val context: Context, private val eventDat
 
 
         init {
+
             btnSeeTickets?.setOnClickListener {
                 val browserIntent = Intent(Intent.ACTION_VIEW)
                 browserIntent.data = Uri.parse(eventData[position].url)
                 context.startActivity( browserIntent)
             }
-
 
             if (!showDistance) {
                 checkFavorite?.setOnCheckedChangeListener { buttonView, isChecked ->
@@ -58,12 +59,13 @@ class FavoriteRecyclerAdapter(private val context: Context, private val eventDat
                         notifyDataSetChanged()
                     }
                     //need to make it so you c an favorite it on the discover page
-            }
+                }
 
             }
+
+
         }
     }
-
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): FavoriteRecyclerAdapter.FavoriteHolder {
 
         val itemView = LayoutInflater.from(parent.context).inflate(R.layout.favorite_item, parent, false)
@@ -75,7 +77,7 @@ class FavoriteRecyclerAdapter(private val context: Context, private val eventDat
         val sdf = SimpleDateFormat("yyyy-MM-dd")
 
         if (showDistance) {
-            if(curItem.distance.roundToInt() < 1) {
+            if(curItem.distance.roundToInt() <= 1) {
                 holder.timeLeft.text = "1 Mile Away!"
             } else {
                 holder.timeLeft.text = curItem.distance.roundToInt().toString() + " Miles Away!"
@@ -88,9 +90,9 @@ class FavoriteRecyclerAdapter(private val context: Context, private val eventDat
             var date = sdf.parse(curItem.dates.start.localDate)
             val millionSeconds = date.time - Calendar.getInstance().timeInMillis
             var daysLeft = millionSeconds/(24*60*60*1000)+1
-            if (daysLeft < 1) { //COMEBACK, idk if this works if you send an old id
-                val usersFavorites = db.document("users/${user.uid}/")
-                usersFavorites.update("favorites", FieldValue.arrayRemove(eventData[position].id))
+            if (daysLeft < 1) { //expired
+                //val usersFavorites = db.document("users/${user.uid}/")
+                //usersFavorites.update("favorites", FieldValue.arrayRemove(eventData[position].id))
             } else if (daysLeft > 21) { //https://stackoverflow.com/questions/8472349/how-to-set-text-color-of-a-textview-programmatically
                 holder.timeLeft.setTextColor(Color.parseColor("#00C40D"))
             } else {
@@ -156,13 +158,23 @@ class FavoriteRecyclerAdapter(private val context: Context, private val eventDat
 
     private fun addFavorite(event: EventData) {
         //add it to the users favorites and increment to the favorited events
-        val usersFavorites = db.document("users/${user}")
+        val usersFavorites = db.document("users/${user.uid}")
         usersFavorites.update("favorites", FieldValue.arrayUnion(event.id)) //https://firebase.google.com/docs/firestore/manage-data/add-data
         val eventToAdd = mutableMapOf<String, Any>()
         eventToAdd[event.id] = FieldValue.increment(1);
         val eventRef = db.collection("favoritedEvents").document("favoriteEventsCounter")
         eventRef.update(eventToAdd)
         UserFavorites.addFavorite(event)
+
+    }
+    private fun deleteFavorite(event: EventData) {
+        val usersFavorites = db.document("users/${user.uid}/")
+        usersFavorites.update("favorites", FieldValue.arrayRemove(event.id))
+        val eventToAdd = mutableMapOf<String, Any>()
+        eventToAdd[event.id] = FieldValue.increment(-1);
+        val eventRef = db.collection("favoritedEvents").document("favoriteEventsCounter")
+        eventRef.update(eventToAdd)
+        UserFavorites.removeFavorite(event)
 
     }
 

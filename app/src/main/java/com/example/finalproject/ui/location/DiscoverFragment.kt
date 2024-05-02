@@ -9,7 +9,6 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.CheckBox
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -22,8 +21,16 @@ import com.example.finalproject.UserFavorites
 import com.example.finalproject.databinding.FragmentPopularBinding
 import com.example.finalproject.eventPassed
 import com.example.finalproject.ui.home.HomeViewModel
+import com.google.ai.client.generativeai.GenerativeModel
+import com.google.ai.client.generativeai.type.BlockThreshold
+import com.google.ai.client.generativeai.type.HarmCategory
+import com.google.ai.client.generativeai.type.SafetySetting
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -63,6 +70,7 @@ class DiscoverFragment : Fragment() {
         initRecyclerView()
         loadNearYou()
         UserFavorites.printFavorites()
+        createPrompt()
 
     }
 
@@ -117,6 +125,28 @@ class DiscoverFragment : Fragment() {
 
     }
 
+    private fun createPrompt() {
+        val geminiapikey = "AIzaSyCPFOue41NY2_HJQ5-LeUaaj02hM4QlPTM"
+        val harassmentSafety = SafetySetting(HarmCategory.HARASSMENT, BlockThreshold.ONLY_HIGH)
+        val hateSpeechSafety = SafetySetting(HarmCategory.HATE_SPEECH, BlockThreshold.MEDIUM_AND_ABOVE)
+        val generativeModel = GenerativeModel(
+            // Use a model that's applicable for your use case (see "Implement basic use cases" below)
+            modelName = "gemini-pro",
+            // Access your API key as a Build Configuration variable (see "Set up your API key" above)
+            apiKey = geminiapikey,
+            safetySettings = listOf(harassmentSafety, hateSpeechSafety)
+        )
+
+        CoroutineScope(Dispatchers.Main + CoroutineName("airecc")).launch {
+            var prompt = "Given the following keywords: ${UserFavorites.recommendationLogic()}, " +
+                    "provide a list of recommended specific events to search for in the exact form name1,name2,name3....name7"
+            //prompt = "Generate a list of keywords similar to   in a 100 mile radius around location ${viewModel.cooridinates.value} that might interest a user who enjoys live music in the exact form a,b,c where a,b,c are the name of the artist."
+            val response = generativeModel.generateContent(prompt)
+            Log.d(TAG, "createPrompt: $prompt")
+            Log.d(TAG, "createPrompt: ${response.text}")
+        }
+    }
+
     private fun fillInMoreSuggestions(geoString: String) {
 
         Log.d(TAG, "fillInMoreSuggestions: $geoString")
@@ -127,8 +157,12 @@ class DiscoverFragment : Fragment() {
                 if (response.body()?._embedded == null) {
 
                 } else {
-                    popularEventData.addAll(response.body()!!._embedded.events)
-                    Log.d(TAG, "suggest respoonse: ${response.body()!!}")
+                    val newEvents = response.body()!!._embedded.events
+                    //want to prevent duplicated from appearing
+                    val filtered = newEvents.filter { newEvent ->
+                        popularEventData.none { existingEvent -> existingEvent.id == newEvent.id }
+                    }
+                    popularEventData.addAll(filtered)
                     popularAdapter.notifyDataSetChanged()
                 }
 

@@ -69,11 +69,8 @@ class SlideshowFragment : Fragment() {
         }
         if (!UserFavorites.favoriteIds.isEmpty()) {
             initRecyclerView()
-            loadFavorites()
+
         }
-
-
-
 
     }
 
@@ -82,32 +79,6 @@ class SlideshowFragment : Fragment() {
         _binding = null
     }
 
-    //have the ids of the favorited events, but need the actual data when you want to load exclusively favorites
-    //the data
-    private fun loadFavorites() {
-        val idString = UserFavorites.favoriteIds.joinToString(separator=",")
-        Log.d(TAG, "loadFavorites: $idString")
-
-        eventAPI.getEventById(idString, apiKey).enqueue(object :
-            Callback<TicketData?> {
-            @RequiresApi(Build.VERSION_CODES.O)
-            override fun onResponse(call: Call<TicketData?>, response: Response<TicketData?>) {
-                if (response.body()?._embedded == null) {
-
-                } else {
-                    UserFavorites.addFavorite(response.body()!!._embedded.events)
-                    val filtered = UserFavorites.favoriteEvents.filter{!eventPassed(it)}
-                    UserFavorites.favoriteEvents.clear()
-                    UserFavorites.addFavorite(filtered)
-                }
-                adapter.notifyDataSetChanged()
-                //Log.d(TAG, "initRecyclerView: $userFavorites")
-            }
-            override fun onFailure(call: Call<TicketData?>, t: Throwable) {
-                Log.d(TAG, "onFailure: $t")
-            }
-        })
-    }
 
     private fun initRetrofit() : Retrofit {
 
@@ -122,10 +93,12 @@ class SlideshowFragment : Fragment() {
 
     private fun initRecyclerView() {
         recyclerView = binding.favoriteRecycler
-        Log.d(TAG, "initRecyclerView: ${UserFavorites.favoriteIds}")
+        Log.d(TAG, "initRecyclerView: ${UserFavorites.favoriteEvents}")
+        //since using singleton that gets intialized at the start, just have to verify update that
         adapter = FavoriteRecyclerAdapter(requireContext(), UserFavorites.favoriteEvents,false)
         recyclerView.adapter = adapter
         recyclerView.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL,false)
+
 
     }
 }

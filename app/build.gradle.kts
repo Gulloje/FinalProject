@@ -16,6 +16,7 @@ android {
         minSdk = 24
         targetSdk = 34
         versionCode = 1
+
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -59,6 +60,8 @@ dependencies {
     // Retrofit
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+
+    implementation("com.google.ai.client.generativeai:generativeai:0.4.0")
 
     //google play services for location
     implementation ("com.google.android.gms:play-services-location:21.2.0")

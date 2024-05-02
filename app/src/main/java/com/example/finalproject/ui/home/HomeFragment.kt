@@ -2,14 +2,14 @@ package com.example.finalproject.ui.home
 
 import android.app.AlertDialog
 import android.content.Context
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
-import android.widget.EditText
-import android.widget.TextView
+import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.ViewModelProvider
@@ -21,20 +21,14 @@ import com.example.finalproject.RecyclerAdapter
 import com.example.finalproject.TicketData
 import com.example.finalproject.UserFavorites
 import com.example.finalproject.databinding.FragmentHomeBinding
+import com.example.finalproject.eventPassed
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import kotlin.concurrent.thread
-import kotlin.math.log
 
 class HomeFragment : Fragment() {
 
@@ -126,7 +120,7 @@ class HomeFragment : Fragment() {
                     } else {
                         //Log.d(TAG, "onResponse: ${response.body()}")
                         //Log.d(TAG, "Name ${response.body()!!._embedded.events[0]}")
-                        //Log.d(TAG, "Body: ${response.body()}")
+                        Log.d(TAG, "Body: ${response.body()}")
                         binding.noResultsTextView.visibility = View.GONE
                         eventList.addAll(response.body()!!._embedded.events)
 
@@ -141,6 +135,33 @@ class HomeFragment : Fragment() {
             })
         }
 
+    }
+
+    //have the ids of the favorited events from db read, but need the actual data when you want to load exclusively favorites
+    private fun loadFavorites() {
+        val idString = UserFavorites.favoriteIds.joinToString(separator=",")
+        Log.d(TAG, "loadFavorites: $idString")
+
+        eventAPI.getEventById(idString, apiKey).enqueue(object :
+            Callback<TicketData?> {
+            @RequiresApi(Build.VERSION_CODES.O)
+            override fun onResponse(call: Call<TicketData?>, response: Response<TicketData?>) {
+                if (response.body()?._embedded == null) {
+
+                } else {
+                    UserFavorites.addFavorite(response.body()!!._embedded.events)
+                    val filtered = UserFavorites.favoriteEvents.filter{!eventPassed(it) }
+                    UserFavorites.favoriteEvents.clear()
+                    UserFavorites.addFavorite(filtered)
+                }
+                adapter.notifyDataSetChanged()
+                UserFavorites.recommendationLogic()
+                //Log.d(TAG, "initRecyclerView: $userFavorites")
+            }
+            override fun onFailure(call: Call<TicketData?>, t: Throwable) {
+                Log.d(TAG, "onFailure: $t")
+            }
+        })
     }
     private fun createDialog(title: String, message: String ) {
         val builder = AlertDialog.Builder(requireContext())
@@ -163,6 +184,7 @@ class HomeFragment : Fragment() {
                     favorites = document.data?.get("favorites") as ArrayList<String>
                     UserFavorites.addIdAsList(favorites)
                     theWTFFunction()
+                    loadFavorites()
 
 
                 }
