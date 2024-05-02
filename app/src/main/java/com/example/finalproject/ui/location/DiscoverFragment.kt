@@ -2,6 +2,7 @@ package com.example.finalproject.ui.location
 
 
 
+import android.media.metrics.Event
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -25,7 +26,6 @@ import com.google.ai.client.generativeai.GenerativeModel
 import com.google.ai.client.generativeai.type.BlockThreshold
 import com.google.ai.client.generativeai.type.HarmCategory
 import com.google.ai.client.generativeai.type.SafetySetting
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
@@ -49,10 +49,13 @@ class DiscoverFragment : Fragment() {
     private val BASE_URL = "https://app.ticketmaster.com/"
     private val apiKey = "yL6rMKTtCDSqaZBhQ1FCUHf4z6mO3htG"
     private lateinit var popularAdapter: FavoriteRecyclerAdapter
+    private lateinit var recommendAdapter: FavoriteRecyclerAdapter
+    private var recommendEventData = ArrayList<EventData>()
     private var popularEventData = ArrayList<EventData>()
     private lateinit var popularRecycler: RecyclerView
+    private lateinit var recommendRecycler: RecyclerView
     private val eventAPI = initRetrofit().create(EventDataService::class.java)
-    private val user = FirebaseAuth.getInstance()
+
     private val TAG = "DiscoverFragment"
 
 
@@ -138,12 +141,31 @@ class DiscoverFragment : Fragment() {
         )
 
         CoroutineScope(Dispatchers.Main + CoroutineName("airecc")).launch {
-            var prompt = "Given the following keywords: ${UserFavorites.recommendationLogic()}, " +
-                    "provide a list of recommended specific events to search for in the exact form name1,name2,name3....name7"
+            var prompt = "Given the following user genre favorites: ${UserFavorites.recommendationLogic()}, " +
+                    "provide a list of recommended classifications of events to search for in the exact form class1,class2,class3...class8 with the location ${viewModel.cooridinates.value} in mind"
             //prompt = "Generate a list of keywords similar to   in a 100 mile radius around location ${viewModel.cooridinates.value} that might interest a user who enjoys live music in the exact form a,b,c where a,b,c are the name of the artist."
             val response = generativeModel.generateContent(prompt)
             Log.d(TAG, "createPrompt: $prompt")
             Log.d(TAG, "createPrompt: ${response.text}")
+            response.text?.let {
+                eventAPI.getRecommended(it, viewModel.cooridinates.value, apiKey).enqueue(object :
+                    Callback<TicketData?> {
+                    override fun onResponse(call: Call<TicketData?>, response: Response<TicketData?>) {
+                        if (response.body()?._embedded == null) {
+
+                        } else {
+                            Log.d(TAG, "onResponse: ${response.body()}")
+                            recommendEventData.addAll(response.body()!!._embedded.events)
+                        }
+                        recommendAdapter.notifyDataSetChanged()
+
+                    }
+
+                    override fun onFailure(call: Call<TicketData?>, t: Throwable) {
+                        Log.d(TAG, "onFailure: $t")
+                    }
+                })
+            }
         }
     }
 
@@ -186,12 +208,14 @@ class DiscoverFragment : Fragment() {
     private fun initRecyclerView() {
 
         popularRecycler = binding.recyclerPopular
-
         popularAdapter = FavoriteRecyclerAdapter(requireContext(), popularEventData,true)
         popularRecycler.adapter = popularAdapter
         popularRecycler.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
 
-
+        recommendRecycler = binding.recycleRecomend
+        recommendAdapter = FavoriteRecyclerAdapter(requireContext(), recommendEventData, true)
+        recommendRecycler.adapter = recommendAdapter
+        recommendRecycler.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
 
 
 
