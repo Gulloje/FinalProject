@@ -26,7 +26,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import kotlin.math.roundToInt
 
 
-class FavoriteRecyclerAdapter(private val context: Context, private val eventData: ArrayList<EventData>,
+class FavoriteRecyclerAdapter(private val context: Context, private var eventData: ArrayList<EventData>,
                               private val showDistance: Boolean = false): RecyclerView.Adapter<FavoriteRecyclerAdapter.FavoriteHolder>()
 {
     private val user = FirebaseAuth.getInstance()
@@ -80,10 +80,15 @@ class FavoriteRecyclerAdapter(private val context: Context, private val eventDat
                     }
                 }
             }
-           
+
 
 
         }
+    }
+
+    fun setFilter(eventData: ArrayList<EventData>) {
+        this.eventData = eventData
+        notifyDataSetChanged()
     }
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): FavoriteRecyclerAdapter.FavoriteHolder {
 
@@ -156,7 +161,8 @@ class FavoriteRecyclerAdapter(private val context: Context, private val eventDat
         builder.setTitle("Remove from Favorites")
         builder.setMessage("Are you sure you want to remove this from your favorites?")
         builder.setPositiveButton("Yes") { dialog, which ->
-            removeFavorite(position)
+            deleteFavorite(eventData[position])
+            notifyItemRemoved(position) //https://stackoverflow.com/questions/26076965/android-recyclerview-addition-removal-of-items
         }
         builder.setNegativeButton("No") { dialog, which ->
             dialog.dismiss()
@@ -165,15 +171,7 @@ class FavoriteRecyclerAdapter(private val context: Context, private val eventDat
     }
 
     //should remove from firebase and from temp list
-    //https://stackoverflow.com/questions/26076965/android-recyclerview-addition-removal-of-items
-    private fun removeFavorite(position: Int) {
-        val usersFavorites = db.document("users/${user.uid}/")
-        usersFavorites.update("favorites", FieldValue.arrayRemove(eventData[position].id))
-        UserFavorites.removeFavorite(eventData[position])
-        notifyItemRemoved(position)
 
-
-    }
     private fun deleteFavorite(event: EventData) {
         val usersFavorites = db.document("users/${user.uid}/")
         usersFavorites.update("favorites", FieldValue.arrayRemove(event.id))

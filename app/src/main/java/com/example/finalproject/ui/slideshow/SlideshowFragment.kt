@@ -1,12 +1,15 @@
 package com.example.finalproject.ui.slideshow
 
+import android.media.metrics.Event
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.annotation.RequiresApi
+import android.widget.SearchView
+import android.widget.Toast
+
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.ViewModelProvider
@@ -21,12 +24,10 @@ import com.example.finalproject.databinding.FragmentSlideshowBinding
 import com.example.finalproject.eventPassed
 import com.example.finalproject.ui.home.HomeViewModel
 import com.google.firebase.auth.FirebaseAuth
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import java.util.ArrayList
+import java.util.Locale
+import kotlin.collections.ArrayList
 
 class SlideshowFragment : Fragment() {
 
@@ -45,6 +46,7 @@ class SlideshowFragment : Fragment() {
     private lateinit var adapter: FavoriteRecyclerAdapter
     private val eventAPI = initRetrofit().create(EventDataService::class.java)
     private val user = FirebaseAuth.getInstance()
+    private lateinit var searchView: SearchView
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -56,14 +58,27 @@ class SlideshowFragment : Fragment() {
 
         _binding = FragmentSlideshowBinding.inflate(inflater, container, false)
         val root: View = binding.root
-        Log.d(TAG, "onCreateView: ${user.uid}")
-
+        Log.d(TAG, "onCreateView: ${UserFavorites.favoriteEvents[0].name}")
+        
 
         return root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        //https://www.youtube.com/watch?v=SD097oVVrPE Reference for search view
+        searchView = binding.searchView
+        searchView.clearFocus()
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                return false
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                filterList(newText)
+                return true
+            }
+        })
         if (user.uid == null) {
             binding.textFavorites.text = "Login to Save and View Favorites and Receive Recommendations"
         }
@@ -72,6 +87,21 @@ class SlideshowFragment : Fragment() {
 
         }
 
+    }
+    private fun filterList(query: String?) {
+        if (query != null) {
+            val filteredList = ArrayList<EventData>()
+            for (item in UserFavorites.favoriteEvents) {
+                if (item.name.lowercase(Locale.ROOT).contains(query.lowercase())) {
+                    filteredList.add(item)
+                }
+            }
+            if (filteredList.isEmpty()) {
+                Toast.makeText(requireContext(), "Event Not Found", Toast.LENGTH_SHORT).show()
+            } else {
+                adapter.setFilter(filteredList)
+            }
+        }
     }
 
     override fun onDestroyView() {
@@ -102,3 +132,7 @@ class SlideshowFragment : Fragment() {
 
     }
 }
+
+
+
+
