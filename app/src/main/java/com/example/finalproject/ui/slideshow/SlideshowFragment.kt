@@ -55,6 +55,8 @@ class SlideshowFragment : Fragment() {
         val slideshowViewModel =
             ViewModelProvider(this).get(SlideshowViewModel::class.java)
 
+
+
         _binding = FragmentSlideshowBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
@@ -65,6 +67,8 @@ class SlideshowFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+
         //https://www.youtube.com/watch?v=SD097oVVrPE Reference for search view
         searchView = binding.searchView
         searchView.clearFocus()
@@ -81,7 +85,7 @@ class SlideshowFragment : Fragment() {
         if (FirestoreRepo.getUser() == null) {
             binding.textFavorites.text = "Login to Save and View Favorites and Receive Recommendations"
         }
-        if (!UserFavorites.favoriteIds.isEmpty()) {
+        if (UserFavorites.favoriteIds.isNotEmpty()) {
             initRecyclerView()
 
         }

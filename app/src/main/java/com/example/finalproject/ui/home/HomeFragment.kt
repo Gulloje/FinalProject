@@ -22,8 +22,6 @@ import com.example.finalproject.TicketData
 import com.example.finalproject.UserFavorites
 import com.example.finalproject.databinding.FragmentHomeBinding
 import com.example.finalproject.eventPassed
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -121,9 +119,10 @@ class HomeFragment : Fragment() {
                         Log.d(TAG, "Body: ${response.body()}")
                         binding.noResultsTextView.visibility = View.GONE
                         eventList.addAll(response.body()!!._embedded.events)
+                        adapter.notifyDataSetChanged()
 
                     }
-                    adapter.notifyDataSetChanged()
+
 
                 }
 
@@ -176,17 +175,18 @@ class HomeFragment : Fragment() {
         if (FirestoreRepo.getUser() != null) {
             FirestoreRepo.setFavoriteIds(
                 onSuccess = {
-                    theWTFFunction()  // Assuming this needs to be called after loading favorites
+                    assignAdapter()  // Assuming this needs to be called after loading favorites
                     loadFavorites()   // Load favorites into your RecyclerView or UI
                 },
                 onFailure = {
-                    theWTFFunction()
+                    assignAdapter()
                 }
             )
         } else {
             Log.d(TAG, "initRecyclerView: NO USER")
-            theWTFFunction()
+            assignAdapter()
         }
+        assignAdapter()
 
         Log.d(TAG, "onViewCreated: ${UserFavorites.printFavorites()}")
 
@@ -200,9 +200,8 @@ class HomeFragment : Fragment() {
         return retrofit
     }
 
-    private fun theWTFFunction() {
+    private fun assignAdapter() {
         //i needed to send a function to set the seeMore button to when the recylerview in initialized
-
         adapter = RecyclerAdapter(requireContext(), eventList, UserFavorites.favoriteIds) {
             seeMore()
         };

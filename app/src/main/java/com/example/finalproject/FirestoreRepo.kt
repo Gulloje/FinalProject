@@ -7,6 +7,10 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 
+
+
+//singleton for database operations
+//https://medium.com/@ZahraHeydari/singleton-pattern-in-kotlin-b09380c53b14
 object FirestoreRepo {
     private val db = FirebaseFirestore.getInstance()
     private var user = FirebaseAuth.getInstance().currentUser

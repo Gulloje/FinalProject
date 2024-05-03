@@ -59,7 +59,12 @@ data class VenueData(
     val name: String,
     val city: City,
     val state: State,
-    val address: Address
+    val address: Address,
+    val country: Country
+)
+data class Country(
+    val name: String,
+    val countryCode: String
 )
 data class Address(
     val line1: String

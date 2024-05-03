@@ -43,6 +43,7 @@ class FavoriteRecyclerAdapter(private val context: Context, private var eventDat
         val btnSeeTickets = itemView.findViewById<Button>(R.id.btnSeeTickets)
         val checkFavorite = itemView.findViewById<CheckBox>(R.id.checkFavorite)
         val textDate = itemView.findViewById<TextView>(R.id.textDate)
+        val btnMoreInfo = itemView.findViewById<Button>(R.id.btnMoreInfo)
 
 
         init {
@@ -53,39 +54,39 @@ class FavoriteRecyclerAdapter(private val context: Context, private var eventDat
                 context.startActivity( browserIntent)
             }
 
-
-            checkFavorite?.setOnCheckedChangeListener { buttonView, isChecked ->
-
+            checkFavorite?.setOnClickListener {
                 //if the view is on the favorites tab, verify they want to remove and remove from the view
                 if (!showDistance) {
-                    if (!isChecked) {
-                        createDialog(adapterPosition)
+                    btnMoreInfo.visibility = View.VISIBLE
+                    if (!checkFavorite.isChecked) {
+                        createDialog(adapterPosition, checkFavorite)
                         //this can sometimes be iinconsistent and crash
-                        notifyDataSetChanged()
 
                     }
                 } else { //if other tab, treat like search functionality
+
                     if (FirestoreRepo.getUser() == null) {
                         Toast.makeText(context, "Must Login to Favorite Events", Toast.LENGTH_SHORT).show()
                         checkFavorite.isChecked = false
                         //holder.checkFavorite.visibility = View.GONE //if i think it is better to just hide the button altogether
-                        return@setOnCheckedChangeListener
+                        return@setOnClickListener
                     }
                     val currentEventId = eventData[adapterPosition].id
 
-                    if (isChecked) {
+                    if (checkFavorite.isChecked) {
                         if (!UserFavorites.favoriteIds.contains(currentEventId)) {
                             FirestoreRepo.addFavorite(eventData[adapterPosition])
                         }
                     } else {
                         if (UserFavorites.favoriteIds.contains(currentEventId)) {
-                            FirestoreRepo.deleteFavorite(eventData[adapterPosition])
+                            //had weird alias thing when updating the recycler view, so remove from the view, then remove from the static list  and db
+                            val eventToRemove = eventData[adapterPosition]
+                            eventData.remove(eventData[adapterPosition])
+                            FirestoreRepo.deleteFavorite(eventToRemove)
                         }
                     }
                 }
             }
-
-
 
         }
     }
@@ -105,6 +106,7 @@ class FavoriteRecyclerAdapter(private val context: Context, private var eventDat
         val sdf = SimpleDateFormat("yyyy-MM-dd")
 
         if (showDistance) {
+            holder.btnMoreInfo.visibility = View.GONE
             if(curItem.distance.roundToInt() <= 1) {
                 holder.timeLeft.text = "1 Mile Away!"
             } else {
@@ -114,6 +116,7 @@ class FavoriteRecyclerAdapter(private val context: Context, private var eventDat
             holder.timeLeft.setTextColor(Color.parseColor("#00C40D"))
 
         } else  {
+
             //idk why this is so dumb looking https://stackoverflow.com/questions/42553017/android-calculate-days-between-two-dates
             var date = sdf.parse(curItem.dates.start.localDate)
             val millionSeconds = date.time - Calendar.getInstance().timeInMillis
@@ -160,17 +163,20 @@ class FavoriteRecyclerAdapter(private val context: Context, private var eventDat
     }
 
 
-    private fun createDialog(position: Int) {
+    private fun createDialog(position: Int, checkBox: CheckBox) {
         val builder = AlertDialog.Builder(context)
         builder.setCancelable(true)
         builder.setTitle("Remove from Favorites")
         builder.setMessage("Are you sure you want to remove this from your favorites?")
         builder.setPositiveButton("Yes") { dialog, which ->
-            FirestoreRepo.deleteFavorite(eventData[position])
+            val eventToRemove = eventData[position]
+            eventData.remove(eventData[position])
+            FirestoreRepo.deleteFavorite(eventToRemove)
 
             notifyItemRemoved(position) //https://stackoverflow.com/questions/26076965/android-recyclerview-addition-removal-of-items
         }
         builder.setNegativeButton("No") { dialog, which ->
+            checkBox.isChecked = true
             dialog.dismiss()
         }
         builder.show()

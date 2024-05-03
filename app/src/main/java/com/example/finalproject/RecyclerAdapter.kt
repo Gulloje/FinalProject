@@ -120,9 +120,15 @@ class RecyclerAdapter(private val context: Context, private val eventList: Array
             }
 
 
-            //address
-            holder.eventLocation.text = "${curItem._embedded.venues[0].name}"
-            holder.address.text = "${curItem._embedded.venues[0].address.line1}, ${curItem._embedded.venues[0].city.name}, ${curItem._embedded.venues[0].state.stateCode}"
+            //address\
+            try {
+                holder.eventLocation.text = "${curItem._embedded.venues[0].name}"
+                holder.address.text = "${curItem._embedded.venues[0].address.line1}, ${curItem._embedded.venues[0].city.name}, ${curItem._embedded.venues[0].state.stateCode}"
+            } catch (e: Exception) {
+                holder.eventLocation.text = "${curItem._embedded.venues[0].name}"
+                holder.address.text = "${curItem._embedded.venues[0].address.line1}, ${curItem._embedded.venues[0].city.name}, ${curItem._embedded.venues[0].country.countryCode}"
+            }
+
 
             //wanted to get rid of .0 and .5 and handle null
             try {
