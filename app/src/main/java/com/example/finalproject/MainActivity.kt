@@ -41,7 +41,6 @@ import java.util.concurrent.TimeUnit
 
 class MainActivity : AppCompatActivity() {
 
-    //TO ASK YUSUF: HOW DO I CHANGE THE TEXT AT THE TOP OF THE ACTION BAR, WHY CANT I HIDE THE KEYBOARD WHEN I NAVIGATE BACK
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
 
@@ -49,7 +48,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var locationRequest: LocationRequest
 
     private val user = FirebaseAuth.getInstance().currentUser
-    private val db = FirebaseFirestore.getInstance()
+    //private val db = FirebaseFirestore.getInstance()
 
     private val TAG = "MainActivity"
 
@@ -76,7 +75,7 @@ class MainActivity : AppCompatActivity() {
         // menu should be considered as top level destinations.
         appBarConfiguration = AppBarConfiguration(
             setOf(
-                R.id.nav_search_ticket, R.id.nav_sign_out, R.id.nav_favorites, R.id.nav_popular, R.id.nav_popular
+                R.id.nav_search_ticket, R.id.nav_sign_out, R.id.nav_favorites, R.id.nav_popular
             ), drawerLayout
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
@@ -131,7 +130,6 @@ class MainActivity : AppCompatActivity() {
     override fun onResumeFragments() {
         super.onResumeFragments()
         //deal with getting location
-        Log.d(TAG, "onResumeFragments: ????????")
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
             == PackageManager.PERMISSION_GRANTED) {
             // Permission is granted
@@ -171,10 +169,10 @@ class MainActivity : AppCompatActivity() {
                     locationData["Longitude"] = String.format("%.6f", it.longitude)
                     viewModel.setUserCoords(String.format("%.6f", it.latitude) +"," + String.format("%.6f", it.longitude))
                     //write location to firestore
-                    db.document("users/${user?.uid}").update(locationData)
+                    /*db.document("users/${user?.uid}").update(locationData)
                         .addOnFailureListener {
                             Log.d(TAG, "onLocationResult: couldnt write data")
-                        }
+                        }*/
                 }
             }
         }

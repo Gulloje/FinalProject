@@ -1,10 +1,9 @@
 package com.example.finalproject.ui.location
 
 
-
-import android.media.metrics.Event
 import android.os.Build
 import android.os.Bundle
+import android.os.Parcelable
 import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -21,7 +20,6 @@ import com.example.finalproject.TicketData
 import com.example.finalproject.UserFavorites
 import com.example.finalproject.databinding.FragmentPopularBinding
 import com.example.finalproject.eventPassed
-import com.example.finalproject.ui.home.HomeViewModel
 import com.google.ai.client.generativeai.GenerativeModel
 import com.google.ai.client.generativeai.type.BlockThreshold
 import com.google.ai.client.generativeai.type.HarmCategory
@@ -44,7 +42,6 @@ class DiscoverFragment : Fragment() {
     private var _binding: FragmentPopularBinding? = null
     private val binding get() = _binding!!
 
-    private val model: HomeViewModel by activityViewModels()
     private  val viewModel: DiscoverViewModel by activityViewModels()
     private val BASE_URL = "https://app.ticketmaster.com/"
     private val apiKey = "yL6rMKTtCDSqaZBhQ1FCUHf4z6mO3htG"
@@ -62,16 +59,17 @@ class DiscoverFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         _binding = FragmentPopularBinding.inflate(inflater, container, false)
-        return binding.root
+        val root: View = binding.root
+        return root
 
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         initRecyclerView()
-        loadNearYou()
+
         UserFavorites.printFavorites()
         createPrompt()
 
@@ -79,16 +77,29 @@ class DiscoverFragment : Fragment() {
 
     //should first load the saved events that users have favorited, assuming within range, then just supply remaining space with the ticketmaster suggestions nearby
     // url for suggestions and for distance: https://app.ticketmaster.com/discovery/v2/suggest?geoPoint=40.720721,-74.0073943&apikey=yL6rMKTtCDSqaZBhQ1FCUHf4z6mO3htG
-    private fun loadNearYou() {
-        val db = FirebaseFirestore.getInstance()
-        //var geoString: String;
-        viewModel.cooridinates.observe(viewLifecycleOwner) { geoString ->
-            if (geoString == null) {
-                Log.d(TAG, "loadNearYou: no location")
-                return@observe
-            }
-            Log.d(TAG, "loadNearYou: $geoString")
-            //now need id of events
+    //the ai stuff was working at some point and then just stopped
+    private fun createPrompt() {
+        val geminiapikey = "AIzaSyCPFOue41NY2_HJQ5-LeUaaj02hM4QlPTM"
+        val harassmentSafety = SafetySetting(HarmCategory.HARASSMENT, BlockThreshold.ONLY_HIGH)
+        val hateSpeechSafety = SafetySetting(HarmCategory.HATE_SPEECH, BlockThreshold.MEDIUM_AND_ABOVE)
+
+        val generativeModel = GenerativeModel(
+            // Use a model that's applicable for your use case (see "Implement basic use cases" below)
+            modelName = "gemini-pro",
+            // Access your API key as a Build Configuration variable (see "Set up your API key" above)
+            apiKey = geminiapikey,
+            safetySettings = listOf(harassmentSafety, hateSpeechSafety)
+        )
+
+        CoroutineScope(Dispatchers.Main + CoroutineName("airecc")).launch {
+            var prompt = "Given the following user genre favorites: ${UserFavorites.recommendationLogic()}, " +
+                    "provide a list of recommended classifications of events to search for in the exact form class1,class2,class3...class8 with the location ${viewModel.cooridinates.value} in mind"
+
+            //val response = generativeModel.generateContent(prompt)
+            
+            //response.text?.let {
+            val db = FirebaseFirestore.getInstance()
+            val geoString = viewModel.cooridinates.value
             db.document("favoritedEvents/favoriteEventsCounter").get()
                 .addOnSuccessListener { document ->
                     //comeback to only get ids with a certain number of favorites
@@ -123,38 +134,15 @@ class DiscoverFragment : Fragment() {
 
 
                 }
-        }
-
-
-    }
-
-    private fun createPrompt() {
-        val geminiapikey = "AIzaSyCPFOue41NY2_HJQ5-LeUaaj02hM4QlPTM"
-        val harassmentSafety = SafetySetting(HarmCategory.HARASSMENT, BlockThreshold.ONLY_HIGH)
-        val hateSpeechSafety = SafetySetting(HarmCategory.HATE_SPEECH, BlockThreshold.MEDIUM_AND_ABOVE)
-        val generativeModel = GenerativeModel(
-            // Use a model that's applicable for your use case (see "Implement basic use cases" below)
-            modelName = "gemini-pro",
-            // Access your API key as a Build Configuration variable (see "Set up your API key" above)
-            apiKey = geminiapikey,
-            safetySettings = listOf(harassmentSafety, hateSpeechSafety)
-        )
-
-        CoroutineScope(Dispatchers.Main + CoroutineName("airecc")).launch {
-            var prompt = "Given the following user genre favorites: ${UserFavorites.recommendationLogic()}, " +
-                    "provide a list of recommended classifications of events to search for in the exact form class1,class2,class3...class8 with the location ${viewModel.cooridinates.value} in mind"
-            //prompt = "Generate a list of keywords similar to   in a 100 mile radius around location ${viewModel.cooridinates.value} that might interest a user who enjoys live music in the exact form a,b,c where a,b,c are the name of the artist."
-            val response = generativeModel.generateContent(prompt)
-            Log.d(TAG, "createPrompt: $prompt")
-            Log.d(TAG, "createPrompt: ${response.text}")
-            response.text?.let {
-                eventAPI.getRecommended(it, viewModel.cooridinates.value, apiKey).enqueue(object :
+                val usersRecommended = UserFavorites.recommendationLogic().keys.joinToString(",")
+                //Log.d(TAG, "createPrompt: $usersRecommended")
+                eventAPI.getRecommended(usersRecommended, viewModel.cooridinates.value, apiKey).enqueue(object :
                     Callback<TicketData?> {
                     override fun onResponse(call: Call<TicketData?>, response: Response<TicketData?>) {
                         if (response.body()?._embedded == null) {
 
                         } else {
-                            Log.d(TAG, "onResponse: ${response.body()}")
+                            //Log.d(TAG, "onResponse: ${response.body()}")
                             recommendEventData.addAll(response.body()!!._embedded.events)
                         }
                         recommendAdapter.notifyDataSetChanged()
@@ -165,11 +153,11 @@ class DiscoverFragment : Fragment() {
                         Log.d(TAG, "onFailure: $t")
                     }
                 })
-            }
+            //}
         }
     }
 
-    private fun fillInMoreSuggestions(geoString: String) {
+    private fun fillInMoreSuggestions(geoString: String?) {
 
         Log.d(TAG, "fillInMoreSuggestions: $geoString")
         eventAPI.getSuggestedByDistance(geoString, apiKey).enqueue(object :
@@ -220,6 +208,14 @@ class DiscoverFragment : Fragment() {
 
 
     }
+
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+    
+
 
 
 
