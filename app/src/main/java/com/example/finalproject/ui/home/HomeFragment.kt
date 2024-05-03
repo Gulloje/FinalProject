@@ -185,7 +185,6 @@ class HomeFragment : Fragment() {
                     theWTFFunction()
                     loadFavorites()
 
-
                 }
             }
             .addOnFailureListener {

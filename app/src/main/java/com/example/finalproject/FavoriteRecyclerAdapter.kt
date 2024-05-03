@@ -115,8 +115,9 @@ class FavoriteRecyclerAdapter(private val context: Context, private var eventDat
             val millionSeconds = date.time - Calendar.getInstance().timeInMillis
             var daysLeft = millionSeconds/(24*60*60*1000)+1
             if (daysLeft < 1) { //expired
-                //val usersFavorites = db.document("users/${user.uid}/")
-                //usersFavorites.update("favorites", FieldValue.arrayRemove(eventData[position].id))
+                val usersFavorites = db.document("users/${user.uid}/")
+                usersFavorites.update("favorites", FieldValue.arrayRemove(eventData[position].id))
+                //maybe see if i can just call delete favorite
             } else if (daysLeft > 21) { //https://stackoverflow.com/questions/8472349/how-to-set-text-color-of-a-textview-programmatically
                 holder.timeLeft.setTextColor(Color.parseColor("#00C40D"))
             } else {
