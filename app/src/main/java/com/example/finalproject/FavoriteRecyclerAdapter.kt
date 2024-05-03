@@ -51,17 +51,36 @@ class FavoriteRecyclerAdapter(private val context: Context, private val eventDat
                 context.startActivity( browserIntent)
             }
 
-            if (!showDistance) {
-                checkFavorite?.setOnCheckedChangeListener { buttonView, isChecked ->
-                    //update favorite status based on checkbox
+
+            checkFavorite?.setOnCheckedChangeListener { buttonView, isChecked ->
+
+                //if the view is on the favorites tab, verify they want to remove and remove from the view
+                if (!showDistance) {
                     if (!isChecked) {
                         createDialog(adapterPosition)
                         notifyDataSetChanged()
                     }
-                    //need to make it so you c an favorite it on the discover page
-                }
+                } else { //if other tab, treat like search functionality
+                    if (user == null) {
+                        Toast.makeText(context, "Must Login to Favorite Events", Toast.LENGTH_SHORT).show()
+                        checkFavorite.isChecked = false
+                        //holder.checkFavorite.visibility = View.GONE //if i think it is better to just hide the button altogether
+                        return@setOnCheckedChangeListener
+                    }
+                    val currentEventId = eventData[adapterPosition].id
 
+                    if (isChecked) {
+                        if (!UserFavorites.favoriteIds.contains(currentEventId)) {
+                            addFavorite(eventData[adapterPosition])
+                        }
+                    } else {
+                        if (UserFavorites.favoriteIds.contains(currentEventId)) {
+                            deleteFavorite(eventData[adapterPosition])
+                        }
+                    }
+                }
             }
+           
 
 
         }
@@ -155,6 +174,16 @@ class FavoriteRecyclerAdapter(private val context: Context, private val eventDat
 
 
     }
+    private fun deleteFavorite(event: EventData) {
+        val usersFavorites = db.document("users/${user.uid}/")
+        usersFavorites.update("favorites", FieldValue.arrayRemove(event.id))
+        val eventToAdd = mutableMapOf<String, Any>()
+        eventToAdd[event.id] = FieldValue.increment(-1);
+        val eventRef = db.collection("favoritedEvents").document("favoriteEventsCounter")
+        eventRef.update(eventToAdd)
+        UserFavorites.removeFavorite(event)
+
+    }
 
     private fun addFavorite(event: EventData) {
         //add it to the users favorites and increment to the favorited events
@@ -165,16 +194,6 @@ class FavoriteRecyclerAdapter(private val context: Context, private val eventDat
         val eventRef = db.collection("favoritedEvents").document("favoriteEventsCounter")
         eventRef.update(eventToAdd)
         UserFavorites.addFavorite(event)
-
-    }
-    private fun deleteFavorite(event: EventData) {
-        val usersFavorites = db.document("users/${user.uid}/")
-        usersFavorites.update("favorites", FieldValue.arrayRemove(event.id))
-        val eventToAdd = mutableMapOf<String, Any>()
-        eventToAdd[event.id] = FieldValue.increment(-1);
-        val eventRef = db.collection("favoritedEvents").document("favoriteEventsCounter")
-        eventRef.update(eventToAdd)
-        UserFavorites.removeFavorite(event)
 
     }
 
