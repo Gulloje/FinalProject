@@ -2,16 +2,15 @@ package com.example.finalproject.ui.home
 
 import android.app.AlertDialog
 import android.content.Context
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
-import android.widget.EditText
-import android.widget.TextView
+import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -19,21 +18,16 @@ import com.example.finalproject.EventData
 import com.example.finalproject.EventDataService
 import com.example.finalproject.RecyclerAdapter
 import com.example.finalproject.TicketData
+import com.example.finalproject.UserFavorites
 import com.example.finalproject.databinding.FragmentHomeBinding
+import com.example.finalproject.eventPassed
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import kotlin.concurrent.thread
-import kotlin.math.log
 
 class HomeFragment : Fragment() {
 
@@ -56,7 +50,7 @@ class HomeFragment : Fragment() {
     private val db = FirebaseFirestore.getInstance()
     private val user = FirebaseAuth.getInstance()
 
-    private val model: HomeViewModel by activityViewModels()
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -67,7 +61,7 @@ class HomeFragment : Fragment() {
 
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
         val root: View = binding.root
-        //initRecyclerView()
+
 
         return root
     }
@@ -77,6 +71,8 @@ class HomeFragment : Fragment() {
             search()
         }
         initRecyclerView()
+
+        Log.d(TAG, "onViewCreated: ${UserFavorites.printFavorites()}")
 
 
     }
@@ -123,7 +119,7 @@ class HomeFragment : Fragment() {
                     } else {
                         //Log.d(TAG, "onResponse: ${response.body()}")
                         //Log.d(TAG, "Name ${response.body()!!._embedded.events[0]}")
-                        //Log.d(TAG, "Body: ${response.body()}")
+                        Log.d(TAG, "Body: ${response.body()}")
                         binding.noResultsTextView.visibility = View.GONE
                         eventList.addAll(response.body()!!._embedded.events)
 
@@ -139,6 +135,33 @@ class HomeFragment : Fragment() {
         }
 
     }
+
+    //have the ids of the favorited events from db read, but need the actual data when you want to load exclusively favorites
+    private fun loadFavorites() {
+        val idString = UserFavorites.favoriteIds.joinToString(separator=",")
+        Log.d(TAG, "loadFavorites: $idString")
+
+        eventAPI.getEventById(idString, apiKey).enqueue(object :
+            Callback<TicketData?> {
+            @RequiresApi(Build.VERSION_CODES.O)
+            override fun onResponse(call: Call<TicketData?>, response: Response<TicketData?>) {
+                if (response.body()?._embedded == null) {
+
+                } else {
+                    UserFavorites.addFavorite(response.body()!!._embedded.events)
+                    val filtered = UserFavorites.favoriteEvents.filter{!eventPassed(it) }
+                    UserFavorites.favoriteEvents.clear()
+                    UserFavorites.addFavorite(filtered)
+                }
+                adapter.notifyDataSetChanged()
+                UserFavorites.recommendationLogic()
+                //Log.d(TAG, "initRecyclerView: $userFavorites")
+            }
+            override fun onFailure(call: Call<TicketData?>, t: Throwable) {
+                Log.d(TAG, "onFailure: $t")
+            }
+        })
+    }
     private fun createDialog(title: String, message: String ) {
         val builder = AlertDialog.Builder(requireContext())
         builder.setCancelable(true)
@@ -146,39 +169,31 @@ class HomeFragment : Fragment() {
         builder.setMessage(message)
         builder.show()
     }
+    //when first load recycler view (done on startup regardless), have to determine what events are marked as favorite
+    //then can just save this to the UserFavorites Singleton so dont have to use api constantly
     private fun initRecyclerView() {
         recyclerView = binding.recycleView
         //i needed to send a function to set the seeMore button to when the recylerview in initialized
-        var favorites = ArrayList<String>()
+        var favorites: ArrayList<String>
 
         //COMEBACK: trying to factor stuff out made this crash when user not logged in idk whats going on here
         db.document("users/${user.uid}").get()
             .addOnSuccessListener {document ->
                 if (document.data?.get("favorites") != null) {
                     favorites = document.data?.get("favorites") as ArrayList<String>
-                    adapter = RecyclerAdapter(requireContext(), eventList, favorites) {
-                        seeMore()
-                    };
-                    recyclerView.adapter = adapter
-                    recyclerView.layoutManager = LinearLayoutManager(requireContext())
-                    model.setList(favorites);
+                    UserFavorites.addIdAsList(favorites)
+                    theWTFFunction()
+                    loadFavorites()
+
                 }
             }
             .addOnFailureListener {
-                adapter = RecyclerAdapter(requireContext(), eventList, favorites) {
-                    seeMore()
-                };
-                recyclerView.adapter = adapter
-                recyclerView.layoutManager = LinearLayoutManager(requireContext())
-                model.setList(favorites);
+                theWTFFunction()
 
             }
-        adapter = RecyclerAdapter(requireContext(), eventList, favorites) {
-            seeMore()
-        };
-        recyclerView.adapter = adapter
-        recyclerView.layoutManager = LinearLayoutManager(requireContext())
-        model.setList(favorites);
+        theWTFFunction()
+        Log.d(TAG, "onViewCreated: ${UserFavorites.printFavorites()}")
+
 
     }
     private fun initRetrofit() : Retrofit {
@@ -187,6 +202,14 @@ class HomeFragment : Fragment() {
             .build()
 
         return retrofit
+    }
+
+    private fun theWTFFunction() {
+        adapter = RecyclerAdapter(requireContext(), eventList, UserFavorites.favoriteIds) {
+            seeMore()
+        };
+        recyclerView.adapter = adapter
+        recyclerView.layoutManager = LinearLayoutManager(requireContext())
     }
 
     private fun View.hideKeyboard() {

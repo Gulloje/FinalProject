@@ -1,5 +1,10 @@
 package com.example.finalproject
 
+import android.os.Build
+import android.provider.MediaStore.Audio.Genres
+import androidx.annotation.RequiresApi
+import java.time.LocalDate
+
 data class TicketData(
 
     val _embedded: EmbeddedData
@@ -16,7 +21,11 @@ data class EventData(
     val dates: Dates,
     val _embedded: EmbeddedVenue,
     val priceRanges: List<PriceRangeData>,
-    val id: String
+    val id: String,
+    val distance: Double,
+    val classifications: List<Classifications>,
+    var isEventPassed: Boolean = false
+
 )
 data class Images(
     val width: Int,
@@ -25,6 +34,16 @@ data class Images(
 )
 data class Dates(
     val start: Start
+)
+data class Classifications(
+    val genre: Genre,
+    val segment: Segment
+)
+data class Genre (
+    val name: String
+)
+data class Segment(
+    val name: String
 )
 
 data class Start(
@@ -57,4 +76,14 @@ data class PriceRangeData(
     val max: Double,
     val currency: String
 )
+
+@RequiresApi(Build.VERSION_CODES.O)
+fun eventPassed(eventData: EventData) : Boolean {
+    val curDate = LocalDate.now()
+    val eventDate = LocalDate.parse(eventData.dates.start.localDate)
+    eventData.isEventPassed = eventDate.isBefore(curDate)
+    return eventDate.isBefore(curDate)
+
+
+}
 

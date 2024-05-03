@@ -6,18 +6,18 @@
     <group android:checkableBehavior="single">
         <item
             android:id="@+id/nav_search_ticket"
-            android:icon="@android:drawable/ic_menu_search"
+            android:icon="?android:attr/actionModeWebSearchDrawable"
             android:title="@string/menu_search_ticket" />
         <item
             android:id="@+id/nav_favorites"
-            android:icon="@android:drawable/ic_menu_view"
+            android:icon="@drawable/baseline_star_24"
             android:title="@string/menu_favorites" />
         <item
             android:id="@+id/nav_popular"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:icon="@android:drawable/ic_menu_mylocation"
-            android:title="@string/menu_popular" />
+            android:icon="@drawable/baseline_add_location_24"
+            android:title="@string/menu_discover" />
         <item
             android:id="@+id/nav_sign_out"
             android:icon="@android:drawable/ic_menu_revert"
