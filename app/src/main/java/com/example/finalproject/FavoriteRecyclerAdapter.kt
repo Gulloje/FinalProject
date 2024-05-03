@@ -8,6 +8,8 @@ import android.graphics.Color
 import android.icu.text.SimpleDateFormat
 import android.icu.util.Calendar
 import android.net.Uri
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -58,10 +60,12 @@ class FavoriteRecyclerAdapter(private val context: Context, private var eventDat
                 if (!showDistance) {
                     if (!isChecked) {
                         createDialog(adapterPosition)
+                        //this can sometimes be iinconsistent and crash
                         notifyDataSetChanged()
+
                     }
                 } else { //if other tab, treat like search functionality
-                    if (user == null) {
+                    if (FirestoreRepo.getUser() == null) {
                         Toast.makeText(context, "Must Login to Favorite Events", Toast.LENGTH_SHORT).show()
                         checkFavorite.isChecked = false
                         //holder.checkFavorite.visibility = View.GONE //if i think it is better to just hide the button altogether
@@ -71,11 +75,11 @@ class FavoriteRecyclerAdapter(private val context: Context, private var eventDat
 
                     if (isChecked) {
                         if (!UserFavorites.favoriteIds.contains(currentEventId)) {
-                            addFavorite(eventData[adapterPosition])
+                            FirestoreRepo.addFavorite(eventData[adapterPosition])
                         }
                     } else {
                         if (UserFavorites.favoriteIds.contains(currentEventId)) {
-                            deleteFavorite(eventData[adapterPosition])
+                            FirestoreRepo.deleteFavorite(eventData[adapterPosition])
                         }
                     }
                 }
@@ -162,7 +166,8 @@ class FavoriteRecyclerAdapter(private val context: Context, private var eventDat
         builder.setTitle("Remove from Favorites")
         builder.setMessage("Are you sure you want to remove this from your favorites?")
         builder.setPositiveButton("Yes") { dialog, which ->
-            deleteFavorite(eventData[position])
+            FirestoreRepo.deleteFavorite(eventData[position])
+
             notifyItemRemoved(position) //https://stackoverflow.com/questions/26076965/android-recyclerview-addition-removal-of-items
         }
         builder.setNegativeButton("No") { dialog, which ->
@@ -170,32 +175,6 @@ class FavoriteRecyclerAdapter(private val context: Context, private var eventDat
         }
         builder.show()
     }
-
-    //should remove from firebase and from temp list
-
-    private fun deleteFavorite(event: EventData) {
-        val usersFavorites = db.document("users/${user.uid}/")
-        usersFavorites.update("favorites", FieldValue.arrayRemove(event.id))
-        val eventToAdd = mutableMapOf<String, Any>()
-        eventToAdd[event.id] = FieldValue.increment(-1);
-        val eventRef = db.collection("favoritedEvents").document("favoriteEventsCounter")
-        eventRef.update(eventToAdd)
-        UserFavorites.removeFavorite(event)
-
-    }
-
-    private fun addFavorite(event: EventData) {
-        //add it to the users favorites and increment to the favorited events
-        val usersFavorites = db.document("users/${user.uid}")
-        usersFavorites.update("favorites", FieldValue.arrayUnion(event.id)) //https://firebase.google.com/docs/firestore/manage-data/add-data
-        val eventToAdd = mutableMapOf<String, Any>()
-        eventToAdd[event.id] = FieldValue.increment(1);
-        val eventRef = db.collection("favoritedEvents").document("favoriteEventsCounter")
-        eventRef.update(eventToAdd)
-        UserFavorites.addFavorite(event)
-
-    }
-
 
 
 

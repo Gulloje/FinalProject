@@ -35,8 +35,9 @@ class LoginPage : AppCompatActivity() {
                 if (result.resultCode == Activity.RESULT_OK) {
                     val user = FirebaseAuth.getInstance().currentUser
                     if (user != null && (user.metadata?.creationTimestamp ==user.metadata?.lastSignInTimestamp)) {
-                        addUserToFirestore(user)
+                        FirestoreRepo.addUser(user)
                     }
+                    FirestoreRepo.setUser(user)
                     startActivity(Intent(this, MainActivity::class.java))
                     finish()
                 } else {
@@ -72,14 +73,14 @@ class LoginPage : AppCompatActivity() {
         }
 
     }
-    private fun addUserToFirestore(user: FirebaseUser) {
+    /*private fun addUserToFirestore(user: FirebaseUser) {
         val db = FirebaseFirestore.getInstance()
         val userData = mapOf<String, Any>() //since i dont really care about also writing the uid as a field under the document with uid, just need an object to send to .set
         db.collection("users").document(user.uid).set(userData)
             .addOnFailureListener {
                 Log.d(TAG, "Error adding user.")
             }
-    }
+    }*/
 
 
 }

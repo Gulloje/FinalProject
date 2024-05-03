@@ -3,7 +3,6 @@ package com.example.finalproject.ui.location
 
 import android.os.Build
 import android.os.Bundle
-import android.os.Parcelable
 import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -16,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.finalproject.EventData
 import com.example.finalproject.EventDataService
 import com.example.finalproject.FavoriteRecyclerAdapter
+import com.example.finalproject.FirestoreRepo
 import com.example.finalproject.TicketData
 import com.example.finalproject.UserFavorites
 import com.example.finalproject.databinding.FragmentPopularBinding
@@ -24,7 +24,6 @@ import com.google.ai.client.generativeai.GenerativeModel
 import com.google.ai.client.generativeai.type.BlockThreshold
 import com.google.ai.client.generativeai.type.HarmCategory
 import com.google.ai.client.generativeai.type.SafetySetting
-import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -71,44 +70,22 @@ class DiscoverFragment : Fragment() {
         initRecyclerView()
 
         UserFavorites.printFavorites()
-        createPrompt()
+        getPopularNearYou()
+        getRecommended()
 
     }
 
     //should first load the saved events that users have favorited, assuming within range, then just supply remaining space with the ticketmaster suggestions nearby
     // url for suggestions and for distance: https://app.ticketmaster.com/discovery/v2/suggest?geoPoint=40.720721,-74.0073943&apikey=yL6rMKTtCDSqaZBhQ1FCUHf4z6mO3htG
     //the ai stuff was working at some point and then just stopped
-    private fun createPrompt() {
-        val geminiapikey = "AIzaSyCPFOue41NY2_HJQ5-LeUaaj02hM4QlPTM"
-        val harassmentSafety = SafetySetting(HarmCategory.HARASSMENT, BlockThreshold.ONLY_HIGH)
-        val hateSpeechSafety = SafetySetting(HarmCategory.HATE_SPEECH, BlockThreshold.MEDIUM_AND_ABOVE)
-
-        val generativeModel = GenerativeModel(
-            // Use a model that's applicable for your use case (see "Implement basic use cases" below)
-            modelName = "gemini-pro",
-            // Access your API key as a Build Configuration variable (see "Set up your API key" above)
-            apiKey = geminiapikey,
-            safetySettings = listOf(harassmentSafety, hateSpeechSafety)
-        )
-
-        CoroutineScope(Dispatchers.Main + CoroutineName("airecc")).launch {
-            var prompt = "Given the following user genre favorites: ${UserFavorites.recommendationLogic()}, " +
-                    "provide a list of recommended classifications of events to search for in the exact form class1,class2,class3...class8 with the location ${viewModel.cooridinates.value} in mind"
-
-            //val response = generativeModel.generateContent(prompt)
-            
-            //response.text?.let {
-            val db = FirebaseFirestore.getInstance()
-            val geoString = viewModel.cooridinates.value
-            db.document("favoritedEvents/favoriteEventsCounter").get()
-                .addOnSuccessListener { document ->
-                    //comeback to only get ids with a certain number of favorites
-                    var idString = document.data?.keys?.joinToString(separator = ",").toString()
-                    Log.d(TAG, "loadNearYou: $idString")
-                    //Log.d(TAG, "loadNearYou: ${document.data?.keys}")
-
-                    eventAPI.getEventByGeoPoint(geoString,idString, apiKey).enqueue(object :
-                        Callback<TicketData?> {
+    private fun getPopularNearYou() {
+        val geoString = viewModel.cooridinates.value
+        var idString =""
+        FirestoreRepo.getAllFavoritedCount(
+            onSuccess = {
+                idString = it
+                eventAPI.getEventByGeoPoint(geoString,idString, apiKey).enqueue(object :
+                    Callback<TicketData?> {
                         @RequiresApi(Build.VERSION_CODES.O)
                         override fun onResponse(call: Call<TicketData?>, response: Response<TicketData?>) {
                             if (response.body()?._embedded == null) {
@@ -131,30 +108,57 @@ class DiscoverFragment : Fragment() {
                             Log.d(TAG, "onFailure: $t")
                         }
                     })
-
+                },
+                onFailure = {
 
                 }
-                val usersRecommended = UserFavorites.recommendationLogic().keys.joinToString(",")
-                //Log.d(TAG, "createPrompt: $usersRecommended")
-                eventAPI.getRecommended(usersRecommended, viewModel.cooridinates.value, apiKey).enqueue(object :
-                    Callback<TicketData?> {
-                    override fun onResponse(call: Call<TicketData?>, response: Response<TicketData?>) {
-                        if (response.body()?._embedded == null) {
+        )
 
-                        } else {
-                            //Log.d(TAG, "onResponse: ${response.body()}")
-                            recommendEventData.addAll(response.body()!!._embedded.events)
-                        }
-                        recommendAdapter.notifyDataSetChanged()
+    }
 
-                    }
+    private fun getRecommended() {
+        /*CoroutineScope(Dispatchers.Main + CoroutineName("airecc")).launch {
+            val geminiapikey = "AIzaSyCPFOue41NY2_HJQ5-LeUaaj02hM4QlPTM"
+            val harassmentSafety = SafetySetting(HarmCategory.HARASSMENT, BlockThreshold.ONLY_HIGH)
+            val hateSpeechSafety = SafetySetting(HarmCategory.HATE_SPEECH, BlockThreshold.MEDIUM_AND_ABOVE)
 
-                    override fun onFailure(call: Call<TicketData?>, t: Throwable) {
-                        Log.d(TAG, "onFailure: $t")
-                    }
-                })
-            //}
-        }
+            val generativeModel = GenerativeModel(
+                // Use a model that's applicable for your use case (see "Implement basic use cases" below)
+                modelName = "gemini-pro",
+                // Access your API key as a Build Configuration variable (see "Set up your API key" above)
+                apiKey = geminiapikey,
+                safetySettings = listOf(harassmentSafety, hateSpeechSafety)
+            )
+
+
+            var prompt = "Given the following user genre favorites: ${UserFavorites.recommendationLogic()}, " +
+                    "provide a list of recommended classifications of events to search for in the exact form class1,class2,class3...class8"
+
+            val response = generativeModel.generateContent(prompt)
+            Log.d(TAG, "getRecommended: ${response.text}")
+
+
+        }*/
+        val usersRecommended = UserFavorites.recommendationLogic().keys.joinToString(",")
+        //Log.d(TAG, "createPrompt: $usersRecommended")
+        eventAPI.getRecommended(usersRecommended, viewModel.cooridinates.value, apiKey).enqueue(object :
+            Callback<TicketData?> {
+            override fun onResponse(call: Call<TicketData?>, response: Response<TicketData?>) {
+                if (response.body()?._embedded == null) {
+
+                } else {
+                    //Log.d(TAG, "onResponse: ${response.body()}")
+                    recommendEventData.addAll(response.body()!!._embedded.events)
+                }
+                recommendAdapter.notifyDataSetChanged()
+
+            }
+
+            override fun onFailure(call: Call<TicketData?>, t: Throwable) {
+                Log.d(TAG, "onFailure: $t")
+            }
+        })
+
     }
 
     private fun fillInMoreSuggestions(geoString: String?) {

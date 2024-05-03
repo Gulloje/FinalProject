@@ -32,8 +32,7 @@ class RecyclerAdapter(private val context: Context, private val eventList: Array
 {
     //code for adding the see more button: https://stackoverflow.com/questions/29106484/how-to-add-a-button-at-the-end-of-recyclerview
     val TAG = "Recycler Adapter"
-    private val db = FirebaseFirestore.getInstance()
-    private val user = FirebaseAuth.getInstance().uid
+
     inner class ViewHolder(itemView: View): RecyclerView.ViewHolder(itemView) {
         val eventName = itemView.findViewById<TextView>(R.id.textEventName)
         val eventLocation = itemView.findViewById<TextView>(R.id.textLocation)
@@ -57,22 +56,22 @@ class RecyclerAdapter(private val context: Context, private val eventList: Array
                 onSeeMoreClicked()
             }
             checkFavorite?.setOnCheckedChangeListener { buttonView, isChecked ->
-                if (user == null) {
+                if (FirestoreRepo.getUser() == null) {
                     Toast.makeText(context, "Must Login to Favorite Events", Toast.LENGTH_SHORT).show()
                     checkFavorite.isChecked = false
                     //holder.checkFavorite.visibility = View.GONE //if i think it is better to just hide the button altogether
                     return@setOnCheckedChangeListener
                 }
-                val currentEventId = eventList[position].id
+                val currentEventId = eventList[adapterPosition].id
 
                 //update favorite status based on checkbox
                 if (isChecked) {
                     if (!userFavorites.contains(currentEventId)) {
-                        addFavorite(eventList[position])
+                        FirestoreRepo.addFavorite(eventList[adapterPosition])
                     }
                 } else {
                     if (userFavorites.contains(currentEventId)) {
-                        deleteFavorite(eventList[position])
+                        FirestoreRepo.deleteFavorite(eventList[adapterPosition])
 
                     }
                 }
@@ -167,26 +166,4 @@ class RecyclerAdapter(private val context: Context, private val eventList: Array
         return eventList.size + 1
     }
 
-    private fun addFavorite(event: EventData) {
-        //add it to the users favorites and increment to the favorited events
-        val usersFavorites = db.document("users/${user}")
-        usersFavorites.update("favorites", FieldValue.arrayUnion(event.id)) //https://firebase.google.com/docs/firestore/manage-data/add-data
-        val eventToAdd = mutableMapOf<String, Any>()
-        eventToAdd[event.id] = FieldValue.increment(1);
-        val eventRef = db.collection("favoritedEvents").document("favoriteEventsCounter")
-        eventRef.update(eventToAdd)
-        UserFavorites.addFavorite(event)
-
-    }
-
-    private fun deleteFavorite(event: EventData) {
-        val usersFavorites = db.document("users/${user}/")
-        usersFavorites.update("favorites", FieldValue.arrayRemove(event.id))
-        val eventToAdd = mutableMapOf<String, Any>()
-        eventToAdd[event.id] = FieldValue.increment(-1);
-        val eventRef = db.collection("favoritedEvents").document("favoriteEventsCounter")
-        eventRef.update(eventToAdd)
-        UserFavorites.removeFavorite(event)
-
-    }
 }

@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.finalproject.EventData
 import com.example.finalproject.EventDataService
+import com.example.finalproject.FirestoreRepo
 import com.example.finalproject.RecyclerAdapter
 import com.example.finalproject.TicketData
 import com.example.finalproject.UserFavorites
@@ -46,9 +47,6 @@ class HomeFragment : Fragment() {
     private lateinit var adapter: RecyclerAdapter
     private  val eventList = ArrayList<EventData>()
     private val eventAPI = initRetrofit().create(EventDataService::class.java)
-
-    private val db = FirebaseFirestore.getInstance()
-    private val user = FirebaseAuth.getInstance()
 
 
     override fun onCreateView(
@@ -101,6 +99,7 @@ class HomeFragment : Fragment() {
 
     }
 
+    //tied to search functionality
     private fun loadTickets(cityName: String, keyword: String) {
 
 
@@ -136,7 +135,8 @@ class HomeFragment : Fragment() {
 
     }
 
-    //have the ids of the favorited events from db read, but need the actual data when you want to load exclusively favorites
+    //have the ids of the favorited events from db read, which is fine for the main view
+    //but need the actual data when you want to load exclusively favorites
     private fun loadFavorites() {
         val idString = UserFavorites.favoriteIds.joinToString(separator=",")
         Log.d(TAG, "loadFavorites: $idString")
@@ -154,7 +154,6 @@ class HomeFragment : Fragment() {
                     UserFavorites.addFavorite(filtered)
                 }
                 adapter.notifyDataSetChanged()
-                UserFavorites.recommendationLogic()
                 //Log.d(TAG, "initRecyclerView: $userFavorites")
             }
             override fun onFailure(call: Call<TicketData?>, t: Throwable) {
@@ -173,25 +172,22 @@ class HomeFragment : Fragment() {
     //then can just save this to the UserFavorites Singleton so dont have to use api constantly
     private fun initRecyclerView() {
         recyclerView = binding.recycleView
-        //i needed to send a function to set the seeMore button to when the recylerview in initialized
-        var favorites: ArrayList<String>
-
         //COMEBACK: trying to factor stuff out made this crash when user not logged in idk whats going on here
-        db.document("users/${user.uid}").get()
-            .addOnSuccessListener {document ->
-                if (document.data?.get("favorites") != null) {
-                    favorites = document.data?.get("favorites") as ArrayList<String>
-                    UserFavorites.addIdAsList(favorites)
+        if (FirestoreRepo.getUser() != null) {
+            FirestoreRepo.setFavoriteIds(
+                onSuccess = {
+                    theWTFFunction()  // Assuming this needs to be called after loading favorites
+                    loadFavorites()   // Load favorites into your RecyclerView or UI
+                },
+                onFailure = {
                     theWTFFunction()
-                    loadFavorites()
-
                 }
-            }
-            .addOnFailureListener {
-                theWTFFunction()
+            )
+        } else {
+            Log.d(TAG, "initRecyclerView: NO USER")
+            theWTFFunction()
+        }
 
-            }
-        theWTFFunction()
         Log.d(TAG, "onViewCreated: ${UserFavorites.printFavorites()}")
 
 
@@ -205,11 +201,14 @@ class HomeFragment : Fragment() {
     }
 
     private fun theWTFFunction() {
+        //i needed to send a function to set the seeMore button to when the recylerview in initialized
+
         adapter = RecyclerAdapter(requireContext(), eventList, UserFavorites.favoriteIds) {
             seeMore()
         };
         recyclerView.adapter = adapter
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
+
     }
 
     private fun View.hideKeyboard() {

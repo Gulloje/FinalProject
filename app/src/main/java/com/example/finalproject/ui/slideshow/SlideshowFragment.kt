@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.finalproject.EventData
 import com.example.finalproject.EventDataService
 import com.example.finalproject.FavoriteRecyclerAdapter
+import com.example.finalproject.FirestoreRepo
 import com.example.finalproject.TicketData
 import com.example.finalproject.UserFavorites
 import com.example.finalproject.databinding.FragmentSlideshowBinding
@@ -41,10 +42,8 @@ class SlideshowFragment : Fragment() {
 
 
     private val BASE_URL = "https://app.ticketmaster.com/"
-    private val apiKey = "yL6rMKTtCDSqaZBhQ1FCUHf4z6mO3htG"
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: FavoriteRecyclerAdapter
-    private val eventAPI = initRetrofit().create(EventDataService::class.java)
     private val user = FirebaseAuth.getInstance()
     private lateinit var searchView: SearchView
 
@@ -58,7 +57,7 @@ class SlideshowFragment : Fragment() {
 
         _binding = FragmentSlideshowBinding.inflate(inflater, container, false)
         val root: View = binding.root
-        Log.d(TAG, "onCreateView: ${UserFavorites.favoriteEvents[0].name}")
+
         
 
         return root
@@ -79,7 +78,7 @@ class SlideshowFragment : Fragment() {
                 return true
             }
         })
-        if (user.uid == null) {
+        if (FirestoreRepo.getUser() == null) {
             binding.textFavorites.text = "Login to Save and View Favorites and Receive Recommendations"
         }
         if (!UserFavorites.favoriteIds.isEmpty()) {
@@ -88,6 +87,8 @@ class SlideshowFragment : Fragment() {
         }
 
     }
+
+    ////https://www.youtube.com/watch?v=SD097oVVrPE Reference for search view (same video as above)
     private fun filterList(query: String?) {
         if (query != null) {
             val filteredList = ArrayList<EventData>()
@@ -108,23 +109,10 @@ class SlideshowFragment : Fragment() {
         super.onDestroyView()
         _binding = null
     }
-
-
-    private fun initRetrofit() : Retrofit {
-
-        val retrofit = Retrofit.Builder().baseUrl(BASE_URL)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-
-        return retrofit
-    }
-
-
-
     private fun initRecyclerView() {
         recyclerView = binding.favoriteRecycler
         Log.d(TAG, "initRecyclerView: ${UserFavorites.favoriteEvents}")
-        //since using singleton that gets intialized at the start, just have to verify update that
+        //since using singleton that gets intialized at the start of homefragment, just have to load from Userfavorites
         adapter = FavoriteRecyclerAdapter(requireContext(), UserFavorites.favoriteEvents,false)
         recyclerView.adapter = adapter
         recyclerView.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL,false)

@@ -47,8 +47,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var locationRequest: LocationRequest
 
-    private val user = FirebaseAuth.getInstance().currentUser
-    //private val db = FirebaseFirestore.getInstance()
+    private val user = FirestoreRepo.getUser()
 
     private val TAG = "MainActivity"
 
@@ -97,6 +96,7 @@ class MainActivity : AppCompatActivity() {
         val signOutItem = navView.menu.findItem(R.id.nav_sign_out)
         signOutItem.setOnMenuItemClickListener {
             UserFavorites.resetFavorites()
+            FirestoreRepo.clearUser()
             AuthUI.getInstance().signOut(this)
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
@@ -134,7 +134,7 @@ class MainActivity : AppCompatActivity() {
             == PackageManager.PERMISSION_GRANTED) {
             // Permission is granted
             getUserLocation()
-            user
+            //user
 
         } else {
             ActivityCompat.requestPermissions(this,
