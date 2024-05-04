@@ -103,8 +103,6 @@ class HomeFragment : Fragment() {
 
         if (keyword =="") {
             createDialog("Missing Keyword", "Enter a keyword to search for.")
-        /*} else if (cityName =="") {
-            createDialog("Missing City Name", "Please enter a city.")*/
         } else {
 
             eventAPI.getEventNameByCity(cityName, keyword, seeMoreCounter.toString(), apiKey).enqueue(object :
@@ -171,7 +169,7 @@ class HomeFragment : Fragment() {
     //then can just save this to the UserFavorites Singleton so dont have to use api constantly
     private fun initRecyclerView() {
         recyclerView = binding.recycleView
-        // trying to factor stuff out made this crash when user not logged in idk whats going on here
+        //trying to factor stuff out made this crash when user not logged in idk whats going on here
         if (FirestoreRepo.getUser() != null) {
             FirestoreRepo.setFavoriteIds(
                 onSuccess = {

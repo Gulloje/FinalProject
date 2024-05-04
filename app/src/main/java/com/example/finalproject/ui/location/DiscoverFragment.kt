@@ -21,15 +21,6 @@ import com.example.finalproject.TicketData
 import com.example.finalproject.UserFavorites
 import com.example.finalproject.databinding.FragmentPopularBinding
 import com.example.finalproject.eventPassed
-import com.google.ai.client.generativeai.GenerativeModel
-import com.google.ai.client.generativeai.type.BlockThreshold
-import com.google.ai.client.generativeai.type.HarmCategory
-import com.google.ai.client.generativeai.type.SafetySetting
-import com.google.api.Distribution.BucketOptions.Linear
-import kotlinx.coroutines.CoroutineName
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -88,7 +79,6 @@ class DiscoverFragment : Fragment() {
         var idString =""
         if (geoString =="") {
             binding.textNoLocation.visibility = View.VISIBLE
-            //binding.recyclerPopular.visibility = View.GONE
             return
         }
         FirestoreRepo.getAllFavoritedCount(
@@ -98,9 +88,7 @@ class DiscoverFragment : Fragment() {
                     Callback<TicketData?> {
                         @RequiresApi(Build.VERSION_CODES.O)
                         override fun onResponse(call: Call<TicketData?>, response: Response<TicketData?>) {
-                            if (response.body()?._embedded == null) {
-
-                            } else {
+                            if (response.body()?._embedded != null) {
                                 //Log.d(TAG, "onResponse: ${response.body()!!._embedded.events}")
                                 popularEventData.addAll(response.body()!!._embedded.events)
                                 val filtered = popularEventData.filter{ it.distance <= 70 && !eventPassed(it)}
@@ -112,7 +100,7 @@ class DiscoverFragment : Fragment() {
                                     Handler().postDelayed({ //added delay so api call fails less often
                                         fillInMoreSuggestions(geoString)
                                     }, 1500)
-                                    //fillInMoreSuggestions(geoString)
+
                                 }
                             }
 
@@ -123,7 +111,7 @@ class DiscoverFragment : Fragment() {
                     })
                 },
                 onFailure = {
-
+                    fillInMoreSuggestions(geoString)
                 }
         )
 
@@ -136,15 +124,10 @@ class DiscoverFragment : Fragment() {
         eventAPI.getRecommended(usersRecommended, viewModel.cooridinates.value, recommendPage.toString(), apiKey).enqueue(object :
             Callback<TicketData?> {
             override fun onResponse(call: Call<TicketData?>, response: Response<TicketData?>) {
-                if (response.body()?._embedded == null) {
-
-                } else {
-                    //Log.d(TAG, "onResponse: ${response.body()}")
+                if (response.body()?._embedded != null) {
                     recommendEventData.addAll(response.body()!!._embedded.events)
-                    Log.d(TAG, "bruh am i getting data: ${response.body()!!._embedded.events[0].name}")
+                    recommendAdapter.notifyDataSetChanged()
                 }
-                recommendAdapter.notifyDataSetChanged()
-
             }
 
             override fun onFailure(call: Call<TicketData?>, t: Throwable) {
@@ -161,9 +144,7 @@ class DiscoverFragment : Fragment() {
             Callback<TicketData?> {
             @RequiresApi(Build.VERSION_CODES.O)
             override fun onResponse(call: Call<TicketData?>, response: Response<TicketData?>) {
-                if (response.body()?._embedded == null) {
-
-                } else {
+                if (response.body()?._embedded != null) {
                     val newEvents = response.body()!!._embedded.events
                     //want to prevent duplicated from appearing
                     val filtered = newEvents.filter { newEvent ->
@@ -172,7 +153,6 @@ class DiscoverFragment : Fragment() {
                     popularEventData.addAll(filtered)
                     popularAdapter.notifyDataSetChanged()
                 }
-
             }
             override fun onFailure(call: Call<TicketData?>, t: Throwable) {
                 Log.d(TAG, "onFailure: $t")
@@ -212,18 +192,17 @@ class DiscoverFragment : Fragment() {
         super.onDestroyView()
         _binding = null
     }
-
+    //https://stackoverflow.com/questions/48384805/endless-scroll-kotlin-recycling-view-listview
     private fun setEndOfRecyclerListener() {
         scrollListener = object : RecyclerView.OnScrollListener() {
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                 super.onScrollStateChanged(recyclerView, newState)
                 val totalItemCount = recommendRecycler.layoutManager?.itemCount
-                Log.d(TAG, "TOTALITEMCOUNT $totalItemCount and SIZE ${recommendEventData.size}")
+                //Log.d(TAG, "TOTALITEMCOUNT $totalItemCount and SIZE ${recommendEventData.size}")
                 //if (totalItemCount!= null && totalItemCount % 20 == recommendEventData.size) {
                 if (totalItemCount!= null && totalItemCount %20 == 0) {
                     recommendPage++
                     getRecommended()
-                    //recyclerView.removeOnScrollListener(scrollListener)
                 }
             }
 

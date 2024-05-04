@@ -1,7 +1,5 @@
 package com.example.finalproject.ui.slideshow
 
-import android.media.metrics.Event
-import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -9,24 +7,18 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.SearchView
 import android.widget.Toast
-
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.finalproject.EventData
-import com.example.finalproject.EventDataService
 import com.example.finalproject.FavoriteRecyclerAdapter
 import com.example.finalproject.FirestoreRepo
-import com.example.finalproject.TicketData
 import com.example.finalproject.UserFavorites
 import com.example.finalproject.databinding.FragmentSlideshowBinding
-import com.example.finalproject.eventPassed
 import com.example.finalproject.ui.home.HomeViewModel
 import com.google.firebase.auth.FirebaseAuth
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 import java.util.Locale
 import kotlin.collections.ArrayList
 

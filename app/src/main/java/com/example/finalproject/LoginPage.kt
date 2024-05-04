@@ -11,8 +11,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import com.firebase.ui.auth.AuthUI
 import com.google.firebase.auth.FirebaseAuth
 import com.firebase.ui.auth.IdpResponse
-import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.firestore.FirebaseFirestore
 
 class LoginPage : AppCompatActivity() {
     private val TAG = "RegisterActivity"
@@ -50,7 +48,7 @@ class LoginPage : AppCompatActivity() {
                 }
             }
             findViewById<Button>(R.id.btnLogin).setOnClickListener {
-                // Choose authentication providers -- make sure enable them on your firebase account first
+                // authentication providers
                 val providers = arrayListOf(
                     AuthUI.IdpConfig.EmailBuilder().build()
                 )
@@ -73,14 +71,6 @@ class LoginPage : AppCompatActivity() {
         }
 
     }
-    /*private fun addUserToFirestore(user: FirebaseUser) {
-        val db = FirebaseFirestore.getInstance()
-        val userData = mapOf<String, Any>() //since i dont really care about also writing the uid as a field under the document with uid, just need an object to send to .set
-        db.collection("users").document(user.uid).set(userData)
-            .addOnFailureListener {
-                Log.d(TAG, "Error adding user.")
-            }
-    }*/
 
 
 }
