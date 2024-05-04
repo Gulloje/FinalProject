@@ -17,14 +17,24 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.ImageView
+import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.view.marginLeft
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.firebase.ui.auth.data.model.User
+import com.google.ai.client.generativeai.GenerativeModel
+import com.google.ai.client.generativeai.type.BlockThreshold
+import com.google.ai.client.generativeai.type.HarmCategory
+import com.google.ai.client.generativeai.type.SafetySetting
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 
@@ -52,6 +62,10 @@ class FavoriteRecyclerAdapter(private val context: Context, private var eventDat
                 val browserIntent = Intent(Intent.ACTION_VIEW)
                 browserIntent.data = Uri.parse(eventData[position].url)
                 context.startActivity( browserIntent)
+            }
+
+            btnMoreInfo?.setOnClickListener {
+                moreInfoDialog(eventData[adapterPosition])
             }
 
             checkFavorite?.setOnClickListener {
@@ -172,7 +186,6 @@ class FavoriteRecyclerAdapter(private val context: Context, private var eventDat
             val eventToRemove = eventData[position]
             eventData.remove(eventData[position])
             FirestoreRepo.deleteFavorite(eventToRemove)
-
             notifyItemRemoved(position) //https://stackoverflow.com/questions/26076965/android-recyclerview-addition-removal-of-items
         }
         builder.setNegativeButton("No") { dialog, which ->
@@ -180,6 +193,54 @@ class FavoriteRecyclerAdapter(private val context: Context, private var eventDat
             dialog.dismiss()
         }
         builder.show()
+    }
+
+    private fun moreInfoDialog(event: EventData) {
+        CoroutineScope(Dispatchers.Main + CoroutineName("MoreInfo")).launch {
+            val builder = AlertDialog.Builder(context)
+            builder.setTitle("Event Info")
+            builder.setPositiveButton("Close") { dialog, _->
+                dialog.dismiss()
+            }
+            //put the message text in a scroll view
+            val textResponse = TextView(context)
+            val scrollView = ScrollView(context)
+            textResponse.setPadding(24,12,24,12);
+
+            textResponse.textSize = 18f
+            //holder.timeLeft.setTextColor(Color.parseColor("#00C40D"))
+            textResponse.setTextColor(Color.parseColor("#262626"))
+            scrollView.addView(textResponse)
+            builder.setView(scrollView)
+
+
+            val geminiapikey = "AIzaSyCPFOue41NY2_HJQ5-LeUaaj02hM4QlPTM"
+            val harassmentSafety = SafetySetting(HarmCategory.HARASSMENT, BlockThreshold.ONLY_HIGH)
+            val hateSpeechSafety = SafetySetting(HarmCategory.HATE_SPEECH, BlockThreshold.MEDIUM_AND_ABOVE)
+
+            val generativeModel = GenerativeModel(
+                // Use a model that's applicable for your use case (see "Implement basic use cases" below)
+                modelName = "gemini-pro",
+                // Access your API key as a Build Configuration variable (see "Set up your API key" above)
+                apiKey = geminiapikey,
+                safetySettings = listOf(harassmentSafety, hateSpeechSafety)
+            )
+
+
+            var prompt = "Give me a 200 word max summary about this event: ${event.name}. Include a 1 sentence description about ${event._embedded.venues[0].name} in relation. " +
+                    "Provide appropriate line breaks."
+            builder.show()
+            //val response = generativeModel.generateContent(prompt)
+            //Log.d(TAG, "getRecommended: ${response.text}")
+            var fullResponse = ""
+            generativeModel.generateContentStream(prompt).collect { chunk ->
+                fullResponse += chunk.text?.replace("*", "")
+                textResponse.text = fullResponse
+            }
+
+
+
+        }
     }
 
 
