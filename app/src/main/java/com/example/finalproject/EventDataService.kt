@@ -29,6 +29,7 @@ interface EventDataService {
     @GET("discovery/v2/events.json?sort=date,asc&radius=50&countryCode=US")
     fun getRecommended(@Query("classificationName") classificationName: String,
                        @Query("geoPoint") geoPoint: String?,
+                       @Query("page") page: String,
                    @Query ("apikey") apikey: String): Call<TicketData>
 
 

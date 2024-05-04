@@ -113,9 +113,12 @@ class FavoriteRecyclerAdapter(private val context: Context, private var eventDat
         val itemView = LayoutInflater.from(parent.context).inflate(R.layout.favorite_item, parent, false)
         return FavoriteHolder(itemView)
     }
+    private var count = 0
 
     override fun onBindViewHolder(holder: FavoriteHolder, position: Int) {
+        
         val curItem = eventData[position]
+        Log.d(TAG, "onBindViewHolder: ${count++}")
         val sdf = SimpleDateFormat("yyyy-MM-dd")
         if (showDistance) {
             holder.btnMoreInfo.visibility = View.GONE

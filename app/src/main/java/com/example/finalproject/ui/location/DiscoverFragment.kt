@@ -25,6 +25,7 @@ import com.google.ai.client.generativeai.GenerativeModel
 import com.google.ai.client.generativeai.type.BlockThreshold
 import com.google.ai.client.generativeai.type.HarmCategory
 import com.google.ai.client.generativeai.type.SafetySetting
+import com.google.api.Distribution.BucketOptions.Linear
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -51,7 +52,10 @@ class DiscoverFragment : Fragment() {
     private var popularEventData = ArrayList<EventData>()
     private lateinit var popularRecycler: RecyclerView
     private lateinit var recommendRecycler: RecyclerView
+    private lateinit var scrollListener: RecyclerView.OnScrollListener
     private val eventAPI = initRetrofit().create(EventDataService::class.java)
+
+    private lateinit var lastVisibileItem: LinearLayoutManager
 
     private val TAG = "DiscoverFragment"
 
@@ -69,7 +73,7 @@ class DiscoverFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         initRecyclerView()
-
+        lastVisibileItem = LinearLayoutManager(requireContext())
         UserFavorites.printFavorites()
         getPopularNearYou()
         getRecommended()
@@ -124,12 +128,12 @@ class DiscoverFragment : Fragment() {
         )
 
     }
-
+    private var recommendPage = 0
     private fun getRecommended() {
         Log.d(TAG, "getRecommended: ${viewModel.cooridinates.value}")
         val usersRecommended = UserFavorites.recommendationLogic().keys.joinToString(",")
         //Log.d(TAG, "createPrompt: $usersRecommended")
-        eventAPI.getRecommended(usersRecommended, viewModel.cooridinates.value, apiKey).enqueue(object :
+        eventAPI.getRecommended(usersRecommended, viewModel.cooridinates.value, recommendPage.toString(), apiKey).enqueue(object :
             Callback<TicketData?> {
             override fun onResponse(call: Call<TicketData?>, response: Response<TicketData?>) {
                 if (response.body()?._embedded == null) {
@@ -137,6 +141,7 @@ class DiscoverFragment : Fragment() {
                 } else {
                     //Log.d(TAG, "onResponse: ${response.body()}")
                     recommendEventData.addAll(response.body()!!._embedded.events)
+                    Log.d(TAG, "bruh am i getting data: ${response.body()!!._embedded.events[0].name}")
                 }
                 recommendAdapter.notifyDataSetChanged()
 
@@ -196,6 +201,7 @@ class DiscoverFragment : Fragment() {
         recommendAdapter = FavoriteRecyclerAdapter(requireContext(), recommendEventData, true)
         recommendRecycler.adapter = recommendAdapter
         recommendRecycler.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
+        setEndOfRecyclerListener()
 
 
 
@@ -206,6 +212,26 @@ class DiscoverFragment : Fragment() {
         super.onDestroyView()
         _binding = null
     }
+
+    private fun setEndOfRecyclerListener() {
+        scrollListener = object : RecyclerView.OnScrollListener() {
+            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                super.onScrollStateChanged(recyclerView, newState)
+                val totalItemCount = recommendRecycler.layoutManager?.itemCount
+                Log.d(TAG, "TOTALITEMCOUNT $totalItemCount and SIZE ${recommendEventData.size}")
+                //if (totalItemCount!= null && totalItemCount % 20 == recommendEventData.size) {
+                if (totalItemCount!= null && totalItemCount %20 == 0) {
+                    recommendPage++
+                    getRecommended()
+                    //recyclerView.removeOnScrollListener(scrollListener)
+                }
+            }
+
+        }
+        recommendRecycler.addOnScrollListener(scrollListener)
+
+    }
+
     
 
 
