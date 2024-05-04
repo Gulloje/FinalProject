@@ -120,11 +120,12 @@ class RecyclerAdapter(private val context: Context, private val eventList: Array
             }
 
 
-            //address\
+            //address
             try {
                 holder.eventLocation.text = "${curItem._embedded.venues[0].name}"
                 holder.address.text = "${curItem._embedded.venues[0].address.line1}, ${curItem._embedded.venues[0].city.name}, ${curItem._embedded.venues[0].state.stateCode}"
             } catch (e: Exception) {
+                //usually will crash because its different country, not always but o well
                 holder.eventLocation.text = "${curItem._embedded.venues[0].name}"
                 holder.address.text = "${curItem._embedded.venues[0].address.line1}, ${curItem._embedded.venues[0].city.name}, ${curItem._embedded.venues[0].country.countryCode}"
             }

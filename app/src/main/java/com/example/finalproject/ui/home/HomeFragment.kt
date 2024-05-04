@@ -103,8 +103,8 @@ class HomeFragment : Fragment() {
 
         if (keyword =="") {
             createDialog("Missing Keyword", "Enter a keyword to search for.")
-        } else if (cityName =="") {
-            createDialog("Missing City Name", "Please enter a city.")
+        /*} else if (cityName =="") {
+            createDialog("Missing City Name", "Please enter a city.")*/
         } else {
 
             eventAPI.getEventNameByCity(cityName, keyword, seeMoreCounter.toString(), apiKey).enqueue(object :
