@@ -93,9 +93,6 @@ class FavoriteRecyclerAdapter(private val context: Context, private var eventDat
                         }
                     } else {
                         if (UserFavorites.favoriteIds.contains(currentEventId)) {
-                            val eventToRemove = eventData[adapterPosition]
-
-                            //FirestoreRepo.deleteFavorite(eventToRemove)
                             FirestoreRepo.deleteFavorite( eventData[adapterPosition])
 
 
@@ -150,6 +147,10 @@ class FavoriteRecyclerAdapter(private val context: Context, private var eventDat
                 holder.timeLeft.setTextColor(Color.parseColor("#FF0000"))
             }
             holder.timeLeft.text = "$daysLeft Days Left!"
+            if (daysLeft.toInt() == 1) {
+                holder.timeLeft.text = "$daysLeft Day Left!"
+            }
+
 
         }
         holder.eventName.text = "${curItem.name}"

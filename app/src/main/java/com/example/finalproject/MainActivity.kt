@@ -40,14 +40,12 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
-    private lateinit var locationRequest: LocationRequest
-
     private val user = FirestoreRepo.getUser()
 
     private val TAG = "MainActivity"
 
 
-    private lateinit var locationCallback: LocationCallback
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,10 +54,6 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
         setSupportActionBar(binding.appBarMain.toolbar)
 
-        /*binding.appBarMain.fab.setOnClickListener { view ->
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show()
-        }*/
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         getLastKnownLocation()
 
@@ -109,25 +103,19 @@ class MainActivity : AppCompatActivity() {
 
 
     }
-
+    //https://stackoverflow.com/questions/45958226/get-location-android-kotlin
     private fun getLastKnownLocation () {
         if (ActivityCompat.checkSelfPermission(
                 this,
                 Manifest.permission.ACCESS_COARSE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
             ActivityCompat.requestPermissions(this,
                 arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION),
                 5)
             return
         }
+
         fusedLocationClient.lastLocation
             .addOnSuccessListener { location ->
                 if (location != null) {
@@ -168,7 +156,7 @@ class MainActivity : AppCompatActivity() {
                 getLastKnownLocation()
             } else {
                 viewModel.setUserCoords("")
-                Toast.makeText(this, "Location permission denied. Please enable it in settings to view events near you.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Location permission denied.", Toast.LENGTH_SHORT).show()
             }
         }
     }

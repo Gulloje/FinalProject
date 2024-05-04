@@ -54,4 +54,17 @@
         app:layout_constraintTop_toBottomOf="@+id/textRecomend"
         tools:listitem="@layout/favorite_item" />
 
+    <TextView
+        android:id="@+id/textNoLocation"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Enable Location in Settings to view popular events near you."
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:visibility="visible"
+        app:layout_constraintBottom_toTopOf="@+id/textRecomend"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textPopular" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

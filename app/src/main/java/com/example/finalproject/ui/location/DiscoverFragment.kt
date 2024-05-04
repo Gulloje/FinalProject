@@ -82,6 +82,11 @@ class DiscoverFragment : Fragment() {
     private fun getPopularNearYou() {
         val geoString = viewModel.cooridinates.value
         var idString =""
+        if (geoString =="") {
+            binding.textNoLocation.visibility = View.VISIBLE
+            //binding.recyclerPopular.visibility = View.GONE
+            return
+        }
         FirestoreRepo.getAllFavoritedCount(
             onSuccess = {
                 idString = it
