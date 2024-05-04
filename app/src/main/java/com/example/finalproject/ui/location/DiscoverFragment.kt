@@ -3,6 +3,7 @@ package com.example.finalproject.ui.location
 
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
 import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -98,8 +99,11 @@ class DiscoverFragment : Fragment() {
                                 popularEventData.addAll(filtered)
                                 popularAdapter.notifyDataSetChanged()
                                 if(popularEventData.size < 20) {
-                                    //suggestions endpoint only lets you get up to 5 more events
-                                    fillInMoreSuggestions(geoString)
+                                    //suggestions endpoint only lets you get up to 5 more events, but this way never empty
+                                    Handler().postDelayed({ //added delay so api call fails less often
+                                        fillInMoreSuggestions(geoString)
+                                    }, 1500)
+                                    //fillInMoreSuggestions(geoString)
                                 }
                             }
 
@@ -117,28 +121,7 @@ class DiscoverFragment : Fragment() {
     }
 
     private fun getRecommended() {
-        /*CoroutineScope(Dispatchers.Main + CoroutineName("airecc")).launch {
-            val geminiapikey = "AIzaSyCPFOue41NY2_HJQ5-LeUaaj02hM4QlPTM"
-            val harassmentSafety = SafetySetting(HarmCategory.HARASSMENT, BlockThreshold.ONLY_HIGH)
-            val hateSpeechSafety = SafetySetting(HarmCategory.HATE_SPEECH, BlockThreshold.MEDIUM_AND_ABOVE)
-
-            val generativeModel = GenerativeModel(
-                // Use a model that's applicable for your use case (see "Implement basic use cases" below)
-                modelName = "gemini-pro",
-                // Access your API key as a Build Configuration variable (see "Set up your API key" above)
-                apiKey = geminiapikey,
-                safetySettings = listOf(harassmentSafety, hateSpeechSafety)
-            )
-
-
-            var prompt = "Given the following user genre favorites: ${UserFavorites.recommendationLogic()}, " +
-                    "provide a list of recommended classifications of events to search for in the exact form class1,class2,class3...class8"
-
-            val response = generativeModel.generateContent(prompt)
-            Log.d(TAG, "getRecommended: ${response.text}")
-
-
-        }*/
+        Log.d(TAG, "getRecommended: ${viewModel.cooridinates.value}")
         val usersRecommended = UserFavorites.recommendationLogic().keys.joinToString(",")
         //Log.d(TAG, "createPrompt: $usersRecommended")
         eventAPI.getRecommended(usersRecommended, viewModel.cooridinates.value, apiKey).enqueue(object :

@@ -23,11 +23,7 @@ import androidx.drawerlayout.widget.DrawerLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentManager
-import androidx.fragment.app.activityViewModels
 import com.example.finalproject.databinding.ActivityMainBinding
-import com.example.finalproject.ui.home.HomeViewModel
 import com.example.finalproject.ui.location.DiscoverViewModel
 import com.firebase.ui.auth.AuthUI
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -35,9 +31,8 @@ import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
 import java.util.concurrent.TimeUnit
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -59,13 +54,14 @@ class MainActivity : AppCompatActivity() {
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
         setSupportActionBar(binding.appBarMain.toolbar)
 
         /*binding.appBarMain.fab.setOnClickListener { view ->
             Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                 .setAction("Action", null).show()
         }*/
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+        getLastKnownLocation()
 
         val drawerLayout: DrawerLayout = binding.drawerLayout
         val navView: NavigationView = binding.navView
@@ -114,6 +110,42 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+    private fun getLastKnownLocation () {
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            ActivityCompat.requestPermissions(this,
+                arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION),
+                5)
+            return
+        }
+        fusedLocationClient.lastLocation
+            .addOnSuccessListener { location ->
+                if (location != null) {
+                    val locationData = mutableMapOf<String, Any>()
+                    locationData["Latitude"] = String.format("%.6f", location.latitude)
+                    locationData["Longitude"] = String.format("%.6f", location.longitude)
+                    viewModel.setUserCoords(String.format("%.6f", location.latitude) +"," + String.format("%.6f", location.longitude))
+                } else {
+                    viewModel.setUserCoords("")
+                }
+                Log.d(TAG, "getLastKnownLocation: ${viewModel.cooridinates.value}")
+            }
+            .addOnFailureListener {
+                viewModel.setUserCoords("")
+                Log.d(TAG, "getLastKnownLocation FAILED: ${viewModel.cooridinates.value}")
+            }
+    }
+
 
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -127,59 +159,23 @@ class MainActivity : AppCompatActivity() {
         return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
     }
     private val viewModel: DiscoverViewModel by viewModels()
-    override fun onResumeFragments() {
-        super.onResumeFragments()
-        //deal with getting location
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
-            == PackageManager.PERMISSION_GRANTED) {
-            // Permission is granted
-            getUserLocation()
-            //user
 
-        } else {
-            ActivityCompat.requestPermissions(this,
-                arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION),
-                5)
-        }
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == 5) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
 
-    }
-
-
-    //HELPER FUNCTIONS
-
-    //https://www.geeksforgeeks.org/how-to-get-current-location-in-android/#
-    //i just needed longitude and latitude
-    private fun getUserLocation() {
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-
-        locationRequest = LocationRequest.create().apply {
-            interval = TimeUnit.SECONDS.toMillis(60)
-            fastestInterval = TimeUnit.SECONDS.toMillis(30)
-            maxWaitTime = TimeUnit.MINUTES.toMillis(2)
-            priority = LocationRequest.PRIORITY_HIGH_ACCURACY
-        }
-
-        locationCallback = object : LocationCallback() {
-            override fun onLocationResult(result: LocationResult) {
-                super.onLocationResult(result)
-                result.lastLocation?.let {
-                    Log.d(TAG, "onLocationResult:$it \n Latitude=${String.format("%.6f", it.latitude)} Longitude=${it.longitude}")
-                    val locationData = mutableMapOf<String, Any>()
-                    locationData["Latitude"] = String.format("%.6f", it.latitude)
-                    locationData["Longitude"] = String.format("%.6f", it.longitude)
-                    viewModel.setUserCoords(String.format("%.6f", it.latitude) +"," + String.format("%.6f", it.longitude))
-                    //write location to firestore
-                    /*db.document("users/${user?.uid}").update(locationData)
-                        .addOnFailureListener {
-                            Log.d(TAG, "onLocationResult: couldnt write data")
-                        }*/
-                }
+                getLastKnownLocation()
+            } else {
+                viewModel.setUserCoords("")
+                Toast.makeText(this, "Location permission denied. Please enable it in settings to view events near you.", Toast.LENGTH_SHORT).show()
             }
         }
-
-
-        fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.myLooper())
     }
+
+
+
+
 
 
 

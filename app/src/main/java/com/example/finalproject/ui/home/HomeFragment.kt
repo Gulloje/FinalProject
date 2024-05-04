@@ -171,7 +171,7 @@ class HomeFragment : Fragment() {
     //then can just save this to the UserFavorites Singleton so dont have to use api constantly
     private fun initRecyclerView() {
         recyclerView = binding.recycleView
-        //COMEBACK: trying to factor stuff out made this crash when user not logged in idk whats going on here
+        // trying to factor stuff out made this crash when user not logged in idk whats going on here
         if (FirestoreRepo.getUser() != null) {
             FirestoreRepo.setFavoriteIds(
                 onSuccess = {

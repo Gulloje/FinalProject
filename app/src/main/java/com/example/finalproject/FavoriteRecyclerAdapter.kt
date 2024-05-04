@@ -74,7 +74,7 @@ class FavoriteRecyclerAdapter(private val context: Context, private var eventDat
                     btnMoreInfo.visibility = View.VISIBLE
                     if (!checkFavorite.isChecked) {
                         createDialog(adapterPosition, checkFavorite)
-                        //this can sometimes be iinconsistent and crash
+
 
                     }
                 } else { //if other tab, treat like search functionality
@@ -93,10 +93,12 @@ class FavoriteRecyclerAdapter(private val context: Context, private var eventDat
                         }
                     } else {
                         if (UserFavorites.favoriteIds.contains(currentEventId)) {
-                            //had weird alias thing when updating the recycler view, so remove from the view, then remove from the static list  and db
                             val eventToRemove = eventData[adapterPosition]
-                            eventData.remove(eventData[adapterPosition])
-                            FirestoreRepo.deleteFavorite(eventToRemove)
+
+                            //FirestoreRepo.deleteFavorite(eventToRemove)
+                            FirestoreRepo.deleteFavorite( eventData[adapterPosition])
+
+
                         }
                     }
                 }
@@ -118,16 +120,19 @@ class FavoriteRecyclerAdapter(private val context: Context, private var eventDat
     override fun onBindViewHolder(holder: FavoriteHolder, position: Int) {
         val curItem = eventData[position]
         val sdf = SimpleDateFormat("yyyy-MM-dd")
-
         if (showDistance) {
             holder.btnMoreInfo.visibility = View.GONE
-            if(curItem.distance.roundToInt() <= 1) {
+            if(curItem.distance.toInt() == 0) { //if it is 0, means the user never entered location permissions, so just display city and state
+                holder.timeLeft.text = "${curItem._embedded.venues[0].city.name}, ${curItem._embedded.venues[0].state.stateCode}"
+                holder.timeLeft.textSize = 14f
+                holder.timeLeft.setTextColor(Color.parseColor("#000000"))
+            } else if (curItem.distance.roundToInt() <= 1) {
                 holder.timeLeft.text = "1 Mile Away!"
+                holder.timeLeft.setTextColor(Color.parseColor("#00C40D"))
             } else {
                 holder.timeLeft.text = curItem.distance.roundToInt().toString() + " Miles Away!"
+                holder.timeLeft.setTextColor(Color.parseColor("#00C40D"))
             }
-
-            holder.timeLeft.setTextColor(Color.parseColor("#00C40D"))
 
         } else  {
 
@@ -183,6 +188,7 @@ class FavoriteRecyclerAdapter(private val context: Context, private var eventDat
         builder.setTitle("Remove from Favorites")
         builder.setMessage("Are you sure you want to remove this from your favorites?")
         builder.setPositiveButton("Yes") { dialog, which ->
+            //had weird alias thing when updating the recycler view, so remove from the view, then remove from the static list and db
             val eventToRemove = eventData[position]
             eventData.remove(eventData[position])
             FirestoreRepo.deleteFavorite(eventToRemove)
@@ -227,7 +233,7 @@ class FavoriteRecyclerAdapter(private val context: Context, private var eventDat
             )
 
 
-            var prompt = "Give me a 200 word max summary about this event: ${event.name}. Include a 1 sentence description about ${event._embedded.venues[0].name} in relation. " +
+            var prompt = "Give me a 150 word max summary about: ${event.name}. " + //Include a 1 sentence description about the venue: ${event._embedded.venues[0].name}. " +
                     "Provide appropriate line breaks."
             builder.show()
             //val response = generativeModel.generateContent(prompt)

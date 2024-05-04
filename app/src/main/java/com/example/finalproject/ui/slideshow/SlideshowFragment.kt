@@ -88,6 +88,7 @@ class SlideshowFragment : Fragment() {
         if (UserFavorites.favoriteIds.isNotEmpty()) {
             initRecyclerView()
 
+
         }
 
     }
